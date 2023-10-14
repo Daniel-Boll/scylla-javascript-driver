@@ -1,0 +1,23 @@
+{
+  "name": "@lambda-group/scylladb-linux-x64-gnu",
+  "version": "0.0.0",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "scylladb.linux-x64-gnu.node",
+  "files": [
+    "scylladb.linux-x64-gnu.node"
+  ],
+  "description": "A ScyllaDB Driver alternative for Nodejs, Javascript and Typescript written using Node API",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  },
+  "repository": "https://github.com/Daniel-Boll/scylladb",
+  "libc": [
+    "glibc"
+  ]
+}

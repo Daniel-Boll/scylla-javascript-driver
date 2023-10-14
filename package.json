@@ -1,0 +1,40 @@
+{
+  "name": "@lambda-group/scylladb",
+  "version": "0.0.0",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "napi": {
+    "name": "scylladb",
+    "triples": {}
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@napi-rs/cli": "^2.16.3",
+    "ava": "^5.1.1",
+    "tsx": "^3.13.0"
+  },
+  "ava": {
+    "timeout": "3m",
+    "extensions": {
+      "ts": "module"
+    },
+    "nodeArguments": [
+      "--loader=tsx"
+    ]
+  },
+  "engines": {
+    "node": ">= 10"
+  },
+  "scripts": {
+    "artifacts": "napi artifacts",
+    "build": "napi build --platform --release",
+    "build:debug": "napi build --platform",
+    "prepublishOnly": "napi prepublish -t npm",
+    "test": "ava",
+    "universal": "napi universal",
+    "version": "napi version"
+  },
+  "packageManager": "yarn@3.6.4",
+  "repository": "https://github.com/Daniel-Boll/scylladb",
+  "description": "A ScyllaDB Driver alternative for Nodejs, Javascript and Typescript written using Node API"
+}

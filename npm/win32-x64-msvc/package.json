@@ -1,0 +1,20 @@
+{
+  "name": "@lambda-group/scylladb-win32-x64-msvc",
+  "version": "0.0.0",
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "scylladb.win32-x64-msvc.node",
+  "files": [
+    "scylladb.win32-x64-msvc.node"
+  ],
+  "description": "A ScyllaDB Driver alternative for Nodejs, Javascript and Typescript written using Node API",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  },
+  "repository": "https://github.com/Daniel-Boll/scylladb"
+}

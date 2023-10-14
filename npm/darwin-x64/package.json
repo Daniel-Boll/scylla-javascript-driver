@@ -1,0 +1,20 @@
+{
+  "name": "@lambda-group/scylladb-darwin-x64",
+  "version": "0.0.0",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "main": "scylladb.darwin-x64.node",
+  "files": [
+    "scylladb.darwin-x64.node"
+  ],
+  "description": "A ScyllaDB Driver alternative for Nodejs, Javascript and Typescript written using Node API",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  },
+  "repository": "https://github.com/Daniel-Boll/scylladb"
+}
