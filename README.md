@@ -1,13 +1,16 @@
 <div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://socialify.git.ci/daniel-boll/scylladb/image?font=Inter&language=1&name=1&pattern=Solid&theme=Dark">
-    <img src="https://socialify.git.ci/daniel-boll/scylladb/image?font=Inter&language=1&name=1&pattern=Solid&theme=Dark" alt="scylladb" width="640" height="320" />
-  </picture>
+  <a href="https://github.com/daniel-boll/scylla-javascript-driver">
+    <img src="assets/logo.png" alt="scylladb" width="640" />
+  </a>
+
+  <h4>🚀 JavaScript driver for ScyllaDB. Pre-release stage. 🧪🔧</h4>
 </div>
+
 
 ## ⚠️ Disclaimer ⚠️
 
 This repository and the associated npm package are currently in a 🐣 pre-release state and are being used for testing 🧪 purposes. They are subject to change without notice 📝. Eventually, they will be moved to the **ExpressoTS** organization under the `scylladb-driver` package name. Users are encouraged to use this driver with caution ❗ and not in production environments until the official release under the ExpressoTS organization.
+
 
 ## 🚀 Getting Started 🚀
 
