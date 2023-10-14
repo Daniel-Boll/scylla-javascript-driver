@@ -1,15 +1,12 @@
 {
-  "name": "@lambda-group/scylladb-darwin-x64",
+  "name": "@lambda-group/scylladb-darwin-universal",
   "version": "0.0.4",
   "os": [
     "darwin"
   ],
-  "cpu": [
-    "x64"
-  ],
-  "main": "scylladb.darwin-x64.node",
+  "main": "scylladb.darwin-universal.node",
   "files": [
-    "scylladb.darwin-x64.node"
+    "scylladb.darwin-universal.node"
   ],
   "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
   "license": "MIT",

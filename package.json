@@ -1,8 +1,24 @@
 {
   "name": "@lambda-group/scylladb",
   "version": "0.0.4",
+  "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver",
+  "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
+  "author": {
+    "name": "Daniel Boll",
+    "email": "danielboll.dev@proton.me",
+    "url": "https://daniel-boll.me"
+  },
   "main": "index.js",
   "types": "index.d.ts",
+  "scripts": {
+    "artifacts": "napi artifacts",
+    "build": "napi build --platform --release",
+    "build:debug": "napi build --platform",
+    "prepublishOnly": "napi prepublish -t npm",
+    "test": "ava",
+    "universal": "napi universal",
+    "version": "napi version"
+  },
   "napi": {
     "name": "scylladb",
     "triples": {}
@@ -25,16 +41,5 @@
   "engines": {
     "node": ">= 10"
   },
-  "scripts": {
-    "artifacts": "napi artifacts",
-    "build": "napi build --platform --release",
-    "build:debug": "napi build --platform",
-    "prepublishOnly": "napi prepublish -t npm",
-    "test": "ava",
-    "universal": "napi universal",
-    "version": "napi version"
-  },
-  "packageManager": "yarn@3.6.4",
-  "repository": "https://github.com/Daniel-Boll/scylladb",
-  "description": "A ScyllaDB Driver alternative for Nodejs, Javascript and Typescript written using Node API"
+  "packageManager": "yarn@3.6.4"
 }

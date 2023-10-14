@@ -36,7 +36,6 @@ jobs:
           else
             echo "::set-output name=should_publish::false"
           fi
-
   build:
     if: needs.check-version-in-commit.outputs.should_publish == 'true'
     needs:
@@ -49,6 +48,11 @@ jobs:
             target: x86_64-apple-darwin
             build: |
               yarn build
+              strip -x *.node
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            build: |
+              yarn build --target aarch64-apple-darwin
               strip -x *.node
           - host: windows-latest
             build: yarn build
@@ -199,6 +203,39 @@ jobs:
         shell: bash
       - name: Test bindings
         run: docker run --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-slim yarn test
+  universal-macOS:
+    name: Build universal macOS binary
+    needs:
+      - build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          check-latest: true
+          cache: yarn
+      - name: Install dependencies
+        run: yarn install
+      - name: Download macOS x64 artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-x86_64-apple-darwin
+          path: artifacts
+      - name: Download macOS arm64 artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: bindings-aarch64-apple-darwin
+          path: artifacts
+      - name: Combine binaries
+        run: yarn universal
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: bindings-universal-apple-darwin
+          path: ${{ env.APP_NAME }}.*.node
+          if-no-files-found: error
   publish:
     if: needs.check-version-in-commit.outputs.should_publish == 'true'
     name: Publish
@@ -207,6 +244,7 @@ jobs:
       - check-version-in-commit
       - test-macOS-windows-binding
       - test-linux-x64-gnu-binding
+      - universal-macOS
     steps:
       - uses: actions/checkout@v3
       - name: Setup node

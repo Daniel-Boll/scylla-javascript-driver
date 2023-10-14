@@ -11,10 +11,10 @@
   "files": [
     "scylladb.win32-x64-msvc.node"
   ],
-  "description": "A ScyllaDB Driver alternative for Nodejs, Javascript and Typescript written using Node API",
+  "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
   "license": "MIT",
   "engines": {
     "node": ">= 10"
   },
-  "repository": "https://github.com/Daniel-Boll/scylladb"
+  "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver"
 }
