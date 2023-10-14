@@ -252,8 +252,9 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { Cluster, ScyllaSession, Uuid } = nativeBinding
+const { Consistency, Cluster, ScyllaSession, Uuid } = nativeBinding
 
+module.exports.Consistency = Consistency
 module.exports.Cluster = Cluster
 module.exports.ScyllaSession = ScyllaSession
 module.exports.Uuid = Uuid

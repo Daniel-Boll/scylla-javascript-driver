@@ -5,6 +5,24 @@
 
 export interface ClusterConfig {
   nodes: Array<string>
+  defaultExecutionProfile?: ExecutionProfile
+}
+export const enum Consistency {
+  Any = 0,
+  One = 1,
+  Two = 2,
+  Three = 3,
+  Quorum = 4,
+  All = 5,
+  LocalQuorum = 6,
+  EachQuorum = 7,
+  LocalOne = 10,
+  Serial = 8,
+  LocalSerial = 9
+}
+export interface ExecutionProfile {
+  consistency?: Consistency
+  requestTimeout?: number
 }
 export type ScyllaCluster = Cluster
 export class Cluster {
@@ -14,7 +32,7 @@ export class Cluster {
    *     nodes: Array<string>,
    * }
    */
-  constructor(objectConfig: ClusterConfig)
+  constructor(clusterConfig: ClusterConfig)
   /** Connect to the cluster */
   connect(keyspace?: string | undefined | null): Promise<ScyllaSession>
 }
