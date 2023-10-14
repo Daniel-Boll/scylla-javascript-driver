@@ -21,7 +21,12 @@
   },
   "napi": {
     "name": "scylladb",
-    "triples": {}
+    "triples": {
+      "additional": [
+        "aarch64-apple-darwin",
+        "universal-apple-darwin"
+      ]
+    }
   },
   "license": "MIT",
   "devDependencies": {
