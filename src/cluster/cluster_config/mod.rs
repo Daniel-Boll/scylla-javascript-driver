@@ -1,4 +1,8 @@
-use crate::cluster::{execution_profile::ExecutionProfile, config::compression::Compression};
+use crate::cluster::{
+  cluster_config::compression::Compression, execution_profile::ExecutionProfile,
+};
+
+pub mod compression;
 
 #[napi(object)]
 pub struct ClusterConfig {
