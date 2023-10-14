@@ -24,6 +24,14 @@ export interface ExecutionProfile {
   consistency?: Consistency
   requestTimeout?: number
 }
+export interface ConnectionOptions {
+  keyspace?: string
+  auth?: Auth
+}
+export interface Auth {
+  username: string
+  password: string
+}
 export type ScyllaCluster = Cluster
 export class Cluster {
   /**
@@ -34,7 +42,7 @@ export class Cluster {
    */
   constructor(clusterConfig: ClusterConfig)
   /** Connect to the cluster */
-  connect(keyspace?: string | undefined | null): Promise<ScyllaSession>
+  connect(keyspaceOrOptions?: string | ConnectionOptions | undefined | null, options?: ConnectionOptions | undefined | null): Promise<ScyllaSession>
 }
 export class ScyllaSession {
   execute(query: string, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
