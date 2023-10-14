@@ -173,6 +173,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@lambda-group/scylladb@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@lambda-group/scylladb@workspace:."
+  dependencies:
+    "@napi-rs/cli": ^2.16.3
+    ava: ^5.1.1
+    tsx: ^3.13.0
+  languageName: unknown
+  linkType: soft
+
 "@napi-rs/cli@npm:^2.16.3":
   version: 2.16.3
   resolution: "@napi-rs/cli@npm:2.16.3"
@@ -1959,16 +1969,6 @@ __metadata:
   checksum: cab8f25ae6f1434abee8d80023d7e72b598cf1327164ddab31003c51215526801e40b66c5e65d658a0af1e9d6478cadcb4c745f4bd6751f97d8644786c0978b0
   languageName: node
   linkType: hard
-
-"scylladb-driver@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "scylladb-driver@workspace:."
-  dependencies:
-    "@napi-rs/cli": ^2.16.3
-    ava: ^5.1.1
-    tsx: ^3.13.0
-  languageName: unknown
-  linkType: soft
 
 "semver@npm:^7.3.2, semver@npm:^7.3.5":
   version: 7.5.4
