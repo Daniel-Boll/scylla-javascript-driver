@@ -59,8 +59,14 @@ export class Cluster {
   /** Connect to the cluster */
   connect(keyspaceOrOptions?: string | ConnectionOptions | undefined | null, options?: ConnectionOptions | undefined | null): Promise<ScyllaSession>
 }
+export type ScyllaQuery = Query
+export class Query {
+  /** Object config is in the format: */
+  constructor(query: string)
+}
 export class ScyllaSession {
   execute(query: string, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
+  query(scyllaQuery: Query, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
 }
 export class Uuid {
   /** Generates a random UUID v4. */

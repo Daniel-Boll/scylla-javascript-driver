@@ -1,8 +1,10 @@
+use crate::helpers::query_parameter::QueryParameter;
+use crate::helpers::query_results::QueryResult;
+use crate::query::scylla_query::ScyllaQuery;
+use crate::types::uuid::Uuid;
 use napi::bindgen_prelude::Either3;
 use scylla::_macro_internal::SerializedValues;
 use scylla::frame::response::result::ColumnType;
-
-use crate::types::uuid::Uuid;
 
 #[napi]
 pub struct ScyllaSession {
@@ -38,7 +40,7 @@ impl ScyllaSession {
     }
     .unwrap();
 
-    // If no rows were found return an empty array
+    // If no rows were found return an empty array2
     if query_result.result_not_rows().is_ok() {
       return Ok(serde_json::json!([]));
     }
@@ -82,5 +84,18 @@ impl ScyllaSession {
     }
 
     Ok(result)
+  }
+
+  #[napi]
+  pub async fn query(
+    &self,
+    scylla_query: &ScyllaQuery,
+    parameters: Option<Vec<Either3<u32, String, &Uuid>>>,
+  ) -> napi::Result<serde_json::Value> {
+    let values = QueryParameter::parser(parameters).unwrap();
+
+    let query_result = self.session.query(scylla_query.query.clone(), values).await;
+
+    Ok(QueryResult::parser(query_result.unwrap()))
   }
 }
