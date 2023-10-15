@@ -75,12 +75,6 @@ jobs:
           node-version: 18
           check-latest: true
           cache: yarn
-      - name: Install OpenSSL dependencies (Ubuntu)
-        if: runner.os == 'Linux' && ${{ !matrix.settings.docker }}
-        run: sudo apt update && sudo apt install -y pkg-config libssl-dev
-      - name: Install OpenSSL dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: brew install openssl
       - name: Install
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
