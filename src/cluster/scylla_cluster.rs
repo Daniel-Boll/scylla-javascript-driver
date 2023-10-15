@@ -1,4 +1,5 @@
-use napi::Either;
+use napi::{bindgen_prelude::*, Either};
+use openssl::ssl::SslContextBuilder;
 
 use crate::{
   cluster::{
@@ -19,12 +20,27 @@ struct ScyllaCluster {
 struct ConnectionOptions {
   pub keyspace: Option<String>,
   pub auth: Option<Auth>,
+  pub ssl: Option<Ssl>,
 }
 
 #[napi(object)]
+#[derive(Clone)]
 struct Auth {
   pub username: String,
   pub password: String,
+}
+
+#[napi(object)]
+#[derive(Clone)]
+struct Ssl {
+  pub ca_filepath: String,
+  pub verify_mode: Option<VerifyMode>,
+}
+
+#[napi]
+pub enum VerifyMode {
+  None,
+  Peer,
 }
 
 #[napi]
@@ -50,8 +66,8 @@ impl ScyllaCluster {
     }
   }
 
-  /// Connect to the cluster
   #[napi]
+  /// Connect to the cluster
   pub async fn connect(
     &self,
     keyspace_or_options: Option<Either<String, ConnectionOptions>>,
@@ -59,6 +75,7 @@ impl ScyllaCluster {
   ) -> napi::Result<ScyllaSession> {
     let mut builder = scylla::SessionBuilder::new().known_node(self.uri.as_str());
 
+    // TODO: We need to think of a better way to deal with keyspace possibly being options
     let keyspace = match (&keyspace_or_options, &options) {
       (Some(Either::A(keyspace)), _) => Ok(Some(keyspace.clone())),
       (Some(Either::B(_)), Some(_)) => Err(napi::Error::new(
@@ -70,14 +87,26 @@ impl ScyllaCluster {
       (None, None) => Ok(None),
     };
 
-    let auth = match (keyspace_or_options, options) {
-      (Some(Either::A(_)), Some(options)) => Ok(options.auth),
+    let auth = match (&keyspace_or_options, &options) {
+      (Some(Either::A(_)), Some(options)) => Ok(options.auth.clone()),
       (Some(Either::B(_)), Some(_)) => Err(napi::Error::new(
         napi::Status::InvalidArg,
         "Options cannot be provided twice",
       )),
-      (Some(Either::B(options)), None) => Ok(options.auth),
-      (None, Some(options)) => Ok(options.auth),
+      (Some(Either::B(options)), None) => Ok(options.auth.clone()),
+      (None, Some(options)) => Ok(options.auth.clone()),
+      (None, None) => Ok(None),
+      (Some(Either::A(_)), None) => Ok(None),
+    };
+
+    let ssl = match (&keyspace_or_options, &options) {
+      (Some(Either::A(_)), Some(options)) => Ok(options.ssl.clone()),
+      (Some(Either::B(_)), Some(_)) => Err(napi::Error::new(
+        napi::Status::InvalidArg,
+        "Options cannot be provided twice",
+      )),
+      (Some(Either::B(options)), None) => Ok(options.ssl.clone()),
+      (None, Some(options)) => Ok(options.ssl.clone()),
       (None, None) => Ok(None),
       (Some(Either::A(_)), None) => Ok(None),
     };
@@ -88,6 +117,38 @@ impl ScyllaCluster {
 
     if let Some(auth) = auth? {
       builder = builder.user(auth.username, auth.password);
+    }
+
+    if let Some(ssl) = ssl? {
+      let ssl_builder = SslContextBuilder::new(openssl::ssl::SslMethod::tls());
+
+      if let Err(err) = ssl_builder {
+        return Err(napi::Error::new(
+          napi::Status::InvalidArg,
+          format!("Failed to create SSL context: {}", err),
+        ));
+      }
+
+      // Safe to unwrap because we checked for Err above
+      let mut ssl_builder = ssl_builder.unwrap();
+
+      if let Some(verify_mode) = ssl.verify_mode {
+        ssl_builder.set_verify(match verify_mode {
+          VerifyMode::None => openssl::ssl::SslVerifyMode::NONE,
+          VerifyMode::Peer => openssl::ssl::SslVerifyMode::PEER,
+        });
+      } else {
+        ssl_builder.set_verify(openssl::ssl::SslVerifyMode::NONE);
+      }
+
+      if let Err(err) = ssl_builder.set_ca_file(ssl.ca_filepath) {
+        return Err(napi::Error::new(
+          napi::Status::InvalidArg,
+          format!("Failed to set CA file: {}", err),
+        ));
+      }
+
+      builder = builder.ssl_context(Some(ssl_builder.build()));
     }
 
     if let Some(default_execution_profile) = &self.default_execution_profile {

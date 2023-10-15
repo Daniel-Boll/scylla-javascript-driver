@@ -33,10 +33,19 @@ export interface ExecutionProfile {
 export interface ConnectionOptions {
   keyspace?: string
   auth?: Auth
+  ssl?: Ssl
 }
 export interface Auth {
   username: string
   password: string
+}
+export interface Ssl {
+  caFilepath: string
+  verifyMode?: VerifyMode
+}
+export const enum VerifyMode {
+  None = 0,
+  Peer = 1
 }
 export type ScyllaCluster = Cluster
 export class Cluster {
