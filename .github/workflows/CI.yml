@@ -57,7 +57,6 @@ jobs:
           - host: windows-latest
             build: yarn build
             target: x86_64-pc-windows-msvc
-            vcpkg_install: true
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
@@ -124,13 +123,10 @@ jobs:
             apt update
             apt install -y pkg-config libssl-dev
             ${{ matrix.settings.build }}
-      - name: Setup vcpkg and install OpenSSL (Windows)
-        if: matrix.settings.vcpkg_install
+      - name: Install Strawberry Perl (Windows)
+        if: matrix.settings.host == 'windows-latest'
         run: |
-          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
-          vcpkg install openssl:x64-windows-static-md
-          echo "OPENSSL_DIR=$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows-static-md" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "OPENSSL_STATIC=YES" | Out-File -FilePath $env:GITHUB_ENV -Append
+          choco install strawberryperl
       - name: Build
         run: ${{ matrix.settings.build }}
         if: ${{ !matrix.settings.docker }}
