@@ -4,5 +4,7 @@
 extern crate napi_derive;
 
 pub mod cluster;
+pub mod helpers;
+pub mod query;
 pub mod session;
 pub mod types;
