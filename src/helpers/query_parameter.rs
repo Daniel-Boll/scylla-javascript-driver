@@ -8,24 +8,16 @@ pub struct QueryParameter {
 
 impl QueryParameter {
   pub fn parser(parameters: Option<Vec<Either3<u32, String, &Uuid>>>) -> Option<SerializedValues> {
-    let mut values = None;
-
-    if let Some(parameters) = parameters {
-      values = Some(SerializedValues::with_capacity(parameters.len()));
-
-      for parameter in parameters {
-        match parameter {
-          Either3::A(number) => values
-            .as_mut()
-            .unwrap()
-            .add_value(&(number as i32))
-            .unwrap(),
-          Either3::B(str) => values.as_mut().unwrap().add_value(&str).unwrap(),
-          Either3::C(uuid) => values.as_mut().unwrap().add_value(&(uuid.uuid)).unwrap(),
+    parameters.map(|params| {
+      let mut values = SerializedValues::with_capacity(params.len());
+      for param in params {
+        match param {
+          Either3::A(number) => values.add_value(&(number as i32)).unwrap(),
+          Either3::B(str) => values.add_value(&str).unwrap(),
+          Either3::C(uuid) => values.add_value(&(uuid.uuid)).unwrap(),
         }
       }
-      return values;
-    }
-    values
+      values
+    })
   }
 }

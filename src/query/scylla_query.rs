@@ -8,7 +8,6 @@ pub struct ScyllaQuery {
 
 #[napi]
 impl ScyllaQuery {
-  /// Object config is in the format:
   #[napi(constructor)]
   pub fn new(query: String) -> Self {
     Self {
