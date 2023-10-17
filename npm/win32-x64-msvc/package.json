@@ -1,6 +1,6 @@
 {
   "name": "@lambda-group/scylladb-win32-x64-msvc",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "os": [
     "win32"
   ],
