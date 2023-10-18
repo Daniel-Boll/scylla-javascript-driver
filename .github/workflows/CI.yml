@@ -66,6 +66,9 @@ jobs:
               strip *.node
     name: stable - ${{ matrix.settings.target }} - node@18
     runs-on: ${{ matrix.settings.host }}
+    outputs:
+      OPENSSL_DIR: ${{ steps.install_openssl.outputs.OPENSSL_DIR }}
+      OPENSSL_STATIC: ${{ steps.install_openssl.outputs.OPENSSL_STATIC }}
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
@@ -123,14 +126,24 @@ jobs:
             apt update
             apt install -y pkg-config libssl-dev
             ${{ matrix.settings.build }}
-      - name: Install Strawberry Perl (Windows)
+      - name: Install OpenSSL (Windows)
+        id: install_openssl
         if: matrix.settings.host == 'windows-latest'
         run: |
-          choco install strawberryperl --force
+          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+          vcpkg install --triplet=x64-windows-static-md openssl
+          echo "OPENSSL_DIR=$env:VCPKG_INSTALLATION_ROOT/installed/x64-windows-static-md" > "$GITHUB_OUTPUT"
+          echo "OPENSSL_STATIC=YES" > "$GITHUB_OUTPUT"
       - name: Build
-        run: ${{ matrix.settings.build }}
+        run: |
+          echo "::warning:: $OPENSSL_DIR"
+          echo "::warning:: $OPENSSL_STATIC"
+          ${{ matrix.settings.build }}
         if: ${{ !matrix.settings.docker }}
         shell: bash
+        env:
+          OPENSSL_DIR: ${{ matrix.settings.host == 'windows-latest' && needs.build.outputs.OPENSSL_DIR || '' }}
+          OPENSSL_STATIC: ${{ matrix.settings.host == 'windows-latest' && needs.build.outputs.OPENSSL_STATIC || '' }}
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
