@@ -1,6 +1,6 @@
 {
   "name": "@lambda-group/scylladb-darwin-x64",
-  "version": "0.0.14",
+  "version": "0.0.15-0",
   "os": [
     "darwin"
   ],
