@@ -136,14 +136,14 @@ jobs:
           echo "OPENSSL_STATIC=YES" > "$GITHUB_OUTPUT"
       - name: Build
         run: |
-          echo "::warning:: $OPENSSL_DIR"
-          echo "::warning:: $OPENSSL_STATIC"
+          echo "::info:: $OPENSSL_DIR"
+          echo "::info:: $OPENSSL_STATIC"
           ${{ matrix.settings.build }}
         if: ${{ !matrix.settings.docker }}
         shell: bash
         env:
-          OPENSSL_DIR: ${{ matrix.settings.host == 'windows-latest' && needs.build.outputs.OPENSSL_DIR || '' }}
-          OPENSSL_STATIC: ${{ matrix.settings.host == 'windows-latest' && needs.build.outputs.OPENSSL_STATIC || '' }}
+          OPENSSL_DIR: ${{ matrix.settings.host == 'windows-latest' && 'C:\vcpkg\installed\x64-windows-static-md' || '' }}
+          OPENSSL_STATIC: ${{ matrix.settings.host == 'windows-latest' && 'YES' || '' }}
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
