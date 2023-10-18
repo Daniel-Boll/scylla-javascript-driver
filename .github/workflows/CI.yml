@@ -126,7 +126,7 @@ jobs:
       - name: Install Strawberry Perl (Windows)
         if: matrix.settings.host == 'windows-latest'
         run: |
-          choco install strawberryperl
+          choco install strawberryperl --force
       - name: Build
         run: ${{ matrix.settings.build }}
         if: ${{ !matrix.settings.docker }}
