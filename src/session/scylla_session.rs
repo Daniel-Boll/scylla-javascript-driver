@@ -4,6 +4,8 @@ use crate::query::scylla_query::ScyllaQuery;
 use crate::types::uuid::Uuid;
 use napi::bindgen_prelude::Either3;
 
+use super::metrics;
+
 #[napi]
 pub struct ScyllaSession {
   session: scylla::Session,
@@ -13,6 +15,11 @@ pub struct ScyllaSession {
 impl ScyllaSession {
   pub fn new(session: scylla::Session) -> Self {
     Self { session }
+  }
+
+  #[napi]
+  pub fn metrics(&self) -> metrics::Metrics {
+    metrics::Metrics::new(self.session.get_metrics())
   }
 
   #[napi]

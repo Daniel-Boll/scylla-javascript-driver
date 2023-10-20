@@ -16,7 +16,7 @@ impl ScyllaQuery {
   }
 
   pub fn set_consistency(&mut self, consistency: Consistency) {
-    self.query.set_consistency(Consistency::from(consistency));
+    self.query.set_consistency(consistency);
   }
 
   pub fn set_page_size(&mut self, page_size: i32) {
