@@ -59,7 +59,28 @@ export class Cluster {
   /** Connect to the cluster */
   connect(keyspaceOrOptions?: string | ConnectionOptions | undefined | null, options?: ConnectionOptions | undefined | null): Promise<ScyllaSession>
 }
+export class Metrics {
+  /** Returns counter for nonpaged queries */
+  getQueriesNum(): bigint
+  /** Returns counter for pages requested in paged queries */
+  getQueriesIterNum(): bigint
+  /** Returns counter for errors occurred in nonpaged queries */
+  getErrorsNum(): bigint
+  /** Returns counter for errors occurred in paged queries */
+  getErrorsIterNum(): bigint
+  /** Returns average latency in milliseconds */
+  getLatencyAvgMs(): bigint
+  /**
+   * Returns latency from histogram for a given percentile
+   *
+   * # Arguments
+   *
+   * * `percentile` - float value (0.0 - 100.0), value will be clamped to this range
+   */
+  getLatencyPercentileMs(percentile: number): bigint
+}
 export class ScyllaSession {
+  metrics(): Metrics
   execute(query: string, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
 }
 export class Uuid {
