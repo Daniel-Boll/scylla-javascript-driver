@@ -3,7 +3,10 @@
   "version": "1.0.1",
   "description": "Template project for writing node package with napi-rs",
   "main": "index.js",
-  "repository": "git@github.com:napi-rs/package-template.git",
+  "repository": {
+    "url": "git+ssh://git@github.com/napi-rs/package-template.git",
+    "type": "git"
+  },
   "license": "MIT",
   "keywords": [
     "napi-rs",

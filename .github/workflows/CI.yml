@@ -3,6 +3,9 @@ env:
   DEBUG: napi:*
   APP_NAME: package-template
   MACOSX_DEPLOYMENT_TARGET: '10.13'
+permissions:
+  contents: write
+  id-token: write
 'on':
   push:
     branches:
