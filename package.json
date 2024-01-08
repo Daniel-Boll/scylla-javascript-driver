@@ -4,7 +4,7 @@
   "description": "Template project for writing node package with napi-rs",
   "main": "index.js",
   "repository": {
-    "url": "git+ssh://git@github.com/napi-rs/package-template.git",
+    "url": "git+ssh://git@github.com/napi-rs/package-template-pnpm.git",
     "type": "git"
   },
   "license": "MIT",
