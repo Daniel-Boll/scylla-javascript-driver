@@ -23,6 +23,9 @@ extends:
   - prettier
   - eslint:recommended
 
+globals:
+  globalThis: true
+
 rules:
   # 0 = off, 1 = warn, 2 = error
   'space-before-function-paren': 0

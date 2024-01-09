@@ -5,9 +5,15 @@ settings:
   excludeLinksFromLockfile: false
 
 devDependencies:
+  '@emnapi/core':
+    specifier: ^0.45.0
+    version: 0.45.0
+  '@emnapi/runtime':
+    specifier: ^0.45.0
+    version: 0.45.0
   '@napi-rs/cli':
-    specifier: ^3.0.0-alpha.30
-    version: 3.0.0-alpha.30
+    specifier: ^3.0.0-alpha.33
+    version: 3.0.0-alpha.33(@emnapi/runtime@0.45.0)(@tybys/wasm-util@0.8.1)(emnapi@0.45.0)
   '@swc-node/register':
     specifier: ^1.6.8
     version: 1.6.8(@swc/core@1.3.102)(typescript@5.3.3)
@@ -17,6 +23,9 @@ devDependencies:
   '@taplo/cli':
     specifier: ^0.5.2
     version: 0.5.2
+  '@tybys/wasm-util':
+    specifier: ^0.8.1
+    version: 0.8.1
   '@typescript-eslint/eslint-plugin':
     specifier: ^6.18.0
     version: 6.18.0(@typescript-eslint/parser@6.18.0)(eslint@8.56.0)(typescript@5.3.3)
@@ -32,6 +41,9 @@ devDependencies:
   chalk:
     specifier: ^5.3.0
     version: 5.3.0
+  emnapi:
+    specifier: ^0.45.0
+    version: 0.45.0
   eslint:
     specifier: ^8.56.0
     version: 8.56.0
@@ -47,6 +59,9 @@ devDependencies:
   lint-staged:
     specifier: ^15.2.0
     version: 15.2.0
+  memfs-browser:
+    specifier: ^3.4.13000
+    version: 3.4.13000
   npm-run-all:
     specifier: ^4.1.5
     version: 4.1.5
@@ -91,6 +106,18 @@ packages:
       '@arrows/composition': 1.2.2
       '@arrows/error': 1.0.2
       fast-deep-equal: 3.1.3
+    dev: true
+
+  /@emnapi/core@0.45.0:
+    resolution: {integrity: sha512-DPWjcUDQkCeEM4VnljEOEcXdAD7pp8zSZsgOujk/LGIwCXWbXJngin+MO4zbH429lzeC3WbYLGjE2MaUOwzpyw==}
+    dependencies:
+      tslib: 2.6.2
+    dev: true
+
+  /@emnapi/runtime@0.45.0:
+    resolution: {integrity: sha512-Txumi3td7J4A/xTTwlssKieHKTGl3j4A1tglBx72auZ49YK7ePY6XZricgIg9mnZT4xPfA+UPCUdnhRuEFDL+w==}
+    dependencies:
+      tslib: 2.6.2
     dev: true
 
   /@eslint-community/eslint-utils@4.4.0(eslint@8.56.0):
@@ -175,8 +202,8 @@ packages:
       - supports-color
     dev: true
 
-  /@napi-rs/cli@3.0.0-alpha.30:
-    resolution: {integrity: sha512-azbWw5P+Rj31Mz4aPGrYejfyXpRl2rNRp7r7M5zrYlm83v4rNaSehyHpG1cl1+TVi0q9lo5L7V1auBJ7ZcRmOw==}
+  /@napi-rs/cli@3.0.0-alpha.33(@emnapi/runtime@0.45.0)(@tybys/wasm-util@0.8.1)(emnapi@0.45.0):
+    resolution: {integrity: sha512-MaMdlJzR+j0k3w+Qa9v6G2gHjZEJiy7OZr5kaw+881li24ATNGfshjFDG4OGVlj6M7BOzPmocDA7rsjBw4RKlg==}
     engines: {node: '>= 16'}
     hasBin: true
     peerDependencies:
@@ -191,11 +218,14 @@ packages:
       emnapi:
         optional: true
     dependencies:
+      '@emnapi/runtime': 0.45.0
       '@napi-rs/cross-toolchain': 0.0.14
       '@octokit/rest': 20.0.2
+      '@tybys/wasm-util': 0.8.1
       clipanion: 3.2.1(typanion@3.14.0)
       colorette: 2.0.20
       debug: 4.3.4
+      emnapi: 0.45.0
       inquirer: 9.2.12
       js-yaml: 4.1.0
       lodash-es: 4.17.21
@@ -813,6 +843,12 @@ packages:
     hasBin: true
     dev: true
 
+  /@tybys/wasm-util@0.8.1:
+    resolution: {integrity: sha512-GSsTwyBl4pIzsxAY5wroZdyQKyhXk0d8PCRZtrSZ2WEB1cBdrp2EgGBwHOGCZtIIPun/DL3+AykCv+J6fyRH4Q==}
+    dependencies:
+      tslib: 2.6.2
+    dev: true
+
   /@types/json-schema@7.0.15:
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
     dev: true
@@ -1322,6 +1358,13 @@ packages:
       ieee754: 1.2.1
     dev: true
 
+  /buffer@6.0.3:
+    resolution: {integrity: sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==}
+    dependencies:
+      base64-js: 1.5.1
+      ieee754: 1.2.1
+    dev: true
+
   /call-bind@1.0.5:
     resolution: {integrity: sha512-C3nQxfFZxFRVoJoGKKI8y3MOEo129NQ+FgQ08iye+Mk4zNZZGdjfs06bVTr+DBSlA66Q2VEcMki/cUCP4SercQ==}
     dependencies:
@@ -1650,6 +1693,15 @@ packages:
   /emittery@1.0.1:
     resolution: {integrity: sha512-2ID6FdrMD9KDLldGesP6317G78K7km/kMcwItRtVFva7I/cSEOIaLpewaUb+YLXVwdAp3Ctfxh/V5zIl1sj7dQ==}
     engines: {node: '>=14.16'}
+    dev: true
+
+  /emnapi@0.45.0:
+    resolution: {integrity: sha512-VfMt6cZYk5BVuN99ngFQt1EXJLfD4fUx4jmXTCDDzq5DtY3jiSqjFD6p6Ojh5v+AlN5VXVYZbFtgccoz1wvQoQ==}
+    peerDependencies:
+      node-addon-api: '>= 6.1.0'
+    peerDependenciesMeta:
+      node-addon-api:
+        optional: true
     dev: true
 
   /emoji-regex@10.3.0:
@@ -2086,6 +2138,10 @@ packages:
     engines: {node: '>= 8'}
     dependencies:
       minipass: 3.3.6
+    dev: true
+
+  /fs-monkey@1.0.5:
+    resolution: {integrity: sha512-8uMbBjrhzW76TYgEV27Y5E//W2f/lTFmx78P2w19FZSxarhI/798APGQyuGCwmkNxgwGRhrLfvWyLBvNtuOmew==}
     dev: true
 
   /fs.realpath@1.0.0:
@@ -2785,6 +2841,20 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       blueimp-md5: 2.19.0
+    dev: true
+
+  /memfs-browser@3.4.13000:
+    resolution: {integrity: sha512-ASm2NNmpk0DGEvDJMuBmPRevqaEkrXOfB/XWOjO3xmCnsKbt7KEmBK5SOdT9NS2acErd9eAVIcGE6l3fjthFiQ==}
+    dependencies:
+      buffer: 6.0.3
+      memfs: 3.4.13
+    dev: true
+
+  /memfs@3.4.13:
+    resolution: {integrity: sha512-omTM41g3Skpvx5dSYeZIbXKcXoAVc/AoMNwn9TKx++L/gaen/+4TTttmu8ZSch5vfVJ8uJvGbroTsIlslRg6lg==}
+    engines: {node: '>= 4.0.0'}
+    dependencies:
+      fs-monkey: 1.0.5
     dev: true
 
   /memoize@10.0.0:
