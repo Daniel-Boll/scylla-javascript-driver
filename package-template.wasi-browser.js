@@ -1,7 +1,9 @@
-import { instantiateNapiModuleSync as __emnapiInstantiateNapiModuleSync } from '@emnapi/core'
-import { getDefaultContext as __emnapiGetDefaultContext } from '@emnapi/runtime'
-import { WASI as __WASI } from '@tybys/wasm-util'
-import { Volume as __Volume, createFsFromVolume as __createFsFromVolume } from 'memfs-browser'
+import {
+  instantiateNapiModuleSync as __emnapiInstantiateNapiModuleSync,
+  getDefaultContext as __emnapiGetDefaultContext,
+  WASI as __WASI,
+} from '@napi-rs/wasm-runtime'
+import { Volume as __Volume, createFsFromVolume as __createFsFromVolume } from '@napi-rs/wasm-runtime/fs'
 
 import __wasmUrl from './package-template.wasm32-wasi.wasm?url'
 
@@ -19,8 +21,10 @@ const __wasi = new __WASI({
 const __emnapiContext = __emnapiGetDefaultContext()
 
 const __sharedMemory = new WebAssembly.Memory({
-  initial: 1024,
-  maximum: 10240,
+  // 1Gb
+  initial: 16384,
+  // 4Gb
+  maximum: 65536,
   shared: true,
 })
 

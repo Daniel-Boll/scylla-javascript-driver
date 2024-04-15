@@ -8,8 +8,10 @@ const __nodePath = require('node:path')
 const { WASI: __nodeWASI } = require('node:wasi')
 const { Worker } = require('node:worker_threads')
 
-const { instantiateNapiModuleSync: __emnapiInstantiateNapiModuleSync } = require('@emnapi/core')
-const { getDefaultContext: __emnapiGetDefaultContext } = require('@emnapi/runtime')
+const {
+  instantiateNapiModuleSync: __emnapiInstantiateNapiModuleSync,
+  getDefaultContext: __emnapiGetDefaultContext,
+} = require('@napi-rs/wasm-runtime')
 
 const __wasi = new __nodeWASI({
   version: 'preview1',
@@ -22,8 +24,10 @@ const __wasi = new __nodeWASI({
 const __emnapiContext = __emnapiGetDefaultContext()
 
 const __sharedMemory = new WebAssembly.Memory({
-  initial: 1024,
-  maximum: 10240,
+  // 1Gb
+  initial: 16384,
+  // 4Gb
+  maximum: 65536,
   shared: true,
 })
 

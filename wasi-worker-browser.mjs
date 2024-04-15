@@ -1,6 +1,5 @@
-import { instantiateNapiModuleSync, MessageHandler } from '@emnapi/core'
-import { WASI } from '@tybys/wasm-util'
-import { Volume, createFsFromVolume } from 'memfs-browser'
+import { instantiateNapiModuleSync, MessageHandler, WASI } from '@napi-rs/wasm-runtime'
+import { Volume, createFsFromVolume } from '@napi-rs/wasm-runtime/fs'
 
 const fs = createFsFromVolume(
   Volume.fromJSON({
