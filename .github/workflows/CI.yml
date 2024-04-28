@@ -30,9 +30,9 @@ jobs:
         settings:
           - host: macos-latest
             target: x86_64-apple-darwin
-            build: pnpm build
+            build: pnpm build --target x86_64-apple-darwin
           - host: windows-latest
-            build: pnpm build
+            build: pnpm build --target x86_64-pc-windows-msvc
             target: x86_64-pc-windows-msvc
           - host: windows-latest
             build: pnpm build --target i686-pc-windows-msvc
@@ -97,7 +97,7 @@ jobs:
       - uses: goto-bus-stop/setup-zig@v2
         if: ${{ contains(matrix.settings.target, 'musl') }}
         with:
-          version: 0.11.0
+          version: 0.12.0
       - name: Setup toolchain
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
@@ -130,7 +130,7 @@ jobs:
           path: "*.wasm"
           if-no-files-found: error
   build-freebsd:
-    runs-on: macos-12
+    runs-on: macos-13
     name: Build FreeBSD
     steps:
       - uses: actions/checkout@v4
@@ -186,10 +186,13 @@ jobs:
         settings:
           - host: windows-latest
             target: x86_64-pc-windows-msvc
+            architecture: x64
           - host: macos-latest
             target: x86_64-apple-darwin
-          - host: macos-14
+            architecture: x64
+          - host: macos-latest
             target: aarch64-apple-darwin
+            architecture: arm64
         node:
           - '18'
           - '20'
@@ -203,6 +206,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
+          architecture: ${{ matrix.settings.architecture }}
       - name: Install dependencies
         run: pnpm install
       - name: Download artifacts
