@@ -1,4 +1,4 @@
-use napi::{bindgen_prelude::*, Either};
+use napi::Either;
 use openssl::ssl::SslContextBuilder;
 
 use crate::{
@@ -57,7 +57,7 @@ impl ScyllaCluster {
       default_execution_profile,
     } = cluster_config;
 
-    let uri = nodes.get(0).expect("at least one node is required");
+    let uri = nodes.first().expect("at least one node is required");
 
     Self {
       uri: uri.to_string(),

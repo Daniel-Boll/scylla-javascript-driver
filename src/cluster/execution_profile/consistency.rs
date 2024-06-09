@@ -1,5 +1,3 @@
-use napi::bindgen_prelude::*;
-
 #[napi]
 pub enum Consistency {
   Any = 0x0000,
@@ -53,3 +51,4 @@ impl From<scylla::statement::Consistency> for Consistency {
     }
   }
 }
+
