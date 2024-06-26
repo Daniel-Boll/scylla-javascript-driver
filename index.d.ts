@@ -63,6 +63,9 @@ export type ScyllaQuery = Query
 export class Query {
   constructor(query: string)
 }
+export class ScyllaPreparedStatement {
+  setConsistency(consistency: Consistency): void
+}
 export class Metrics {
   /** Returns counter for nonpaged queries */
   getQueriesNum(): bigint
@@ -85,8 +88,9 @@ export class Metrics {
 }
 export class ScyllaSession {
   metrics(): Metrics
-  execute(query: string, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
+  execute(query: string | ScyllaPreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
   query(scyllaQuery: Query, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
+  prepare(query: string): Promise<ScyllaPreparedStatement>
 }
 export class Uuid {
   /** Generates a random UUID v4. */

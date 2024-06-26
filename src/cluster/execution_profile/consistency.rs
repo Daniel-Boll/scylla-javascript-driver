@@ -1,5 +1,3 @@
-use napi::bindgen_prelude::*;
-
 #[napi]
 pub enum Consistency {
   Any = 0x0000,
@@ -35,3 +33,22 @@ impl From<Consistency> for scylla::statement::Consistency {
     }
   }
 }
+
+impl From<scylla::statement::Consistency> for Consistency {
+  fn from(value: scylla::statement::Consistency) -> Self {
+    match value {
+      scylla::statement::Consistency::Any => Self::Any,
+      scylla::statement::Consistency::One => Self::One,
+      scylla::statement::Consistency::Two => Self::Two,
+      scylla::statement::Consistency::Three => Self::Three,
+      scylla::statement::Consistency::Quorum => Self::Quorum,
+      scylla::statement::Consistency::All => Self::All,
+      scylla::statement::Consistency::LocalQuorum => Self::LocalQuorum,
+      scylla::statement::Consistency::EachQuorum => Self::EachQuorum,
+      scylla::statement::Consistency::LocalOne => Self::LocalOne,
+      scylla::statement::Consistency::Serial => Self::Serial,
+      scylla::statement::Consistency::LocalSerial => Self::LocalSerial,
+    }
+  }
+}
+
