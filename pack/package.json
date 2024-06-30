@@ -1,6 +1,6 @@
 {
   "name": "@lambda-group/scylladb",
-  "version": "0.0.20",
+  "version": "0.0.19",
   "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver",
   "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
   "author": {
@@ -12,7 +12,7 @@
   "types": "index.d.ts",
   "scripts": {
     "artifacts": "napi artifacts",
-    "build": "napi build --platform --release --pipe \"node --require tsx/cjs ./scripts/fix-files.ts\"",
+    "build": "napi build --platform --release",
     "build:debug": "napi build --platform",
     "prepublishOnly": "napi prepublish -t npm",
     "test": "ava",
@@ -31,7 +31,6 @@
   "license": "MIT",
   "devDependencies": {
     "@napi-rs/cli": "^2.16.3",
-    "@types/node": "^20.14.9",
     "ava": "^5.1.1",
     "tsx": "^3.13.0"
   },
