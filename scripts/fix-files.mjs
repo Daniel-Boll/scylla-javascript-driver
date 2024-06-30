@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
 // Append to filename inspectors for custom types
-function addInspector(filename: string) {
+function addInspector(filename) {
   writeFileSync(filename, readFileSync(filename, "utf8").concat(`
 const customInspectSymbol = Symbol.for('nodejs.util.inspect.custom')
 

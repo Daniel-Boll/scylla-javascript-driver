@@ -13,8 +13,8 @@
   "types": "index.d.ts",
   "scripts": {
     "artifacts": "napi artifacts",
-    "build": "napi build --platform --release --pipe \"node --require tsx/cjs ./scripts/fix-files.ts\"",
-    "build:debug": "napi build --platform --pipe \"node --require tsx/cjs ./scripts/fix-files.ts\"",
+    "build": "napi build --platform --release --pipe \"node ./scripts/fix-files.mjs\"",
+    "build:debug": "napi build --platform --pipe \"node ./scripts/fix-files.mjs\"",
     "prepublishOnly": "napi prepublish -t npm",
     "test": "NODE_OPTIONS='--import tsx' ava",
     "universal": "napi universal",
@@ -37,10 +37,7 @@
     "tsx": "^4.16.0"
   },
   "ava": {
-    "timeout": "3m",
-    "extensions": {
-      "ts": "module"
-    }
+    "timeout": "3m"
   },
   "engines": {
     "node": ">= 10"
