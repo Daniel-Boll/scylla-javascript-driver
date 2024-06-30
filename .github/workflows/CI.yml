@@ -18,6 +18,7 @@ permissions:
       - "**/*.gitignore"
       - .editorconfig
       - docs/**
+  workflow_dispatch:
   pull_request: null
 jobs:
   check-version-in-commit:
