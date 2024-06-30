@@ -32,6 +32,13 @@ impl QueryResult {
             ColumnType::Int => serde_json::Value::Number(
               serde_json::Number::from_f64(column.as_int().unwrap() as f64).unwrap(),
             ),
+            ColumnType::Float => serde_json::Value::Number(
+              serde_json::Number::from_f64(column.as_float().unwrap() as f64).unwrap(),
+            ),
+            ColumnType::Timestamp => {
+              serde_json::Value::String(column.as_date().unwrap().to_string())
+            }
+            ColumnType::Date => serde_json::Value::String(column.as_date().unwrap().to_string()),
             _ => "Not implemented".into(),
           },
           None => serde_json::Value::Null,
