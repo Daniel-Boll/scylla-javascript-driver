@@ -3,7 +3,6 @@
   "version": "0.0.26",
   "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver",
   "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
-  "type": "module",
   "author": {
     "name": "Daniel Boll",
     "email": "danielboll.dev@proton.me",
