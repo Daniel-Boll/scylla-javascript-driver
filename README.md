@@ -6,11 +6,9 @@
   <h4>🚀 JavaScript driver for ScyllaDB. Pre-release stage. 🧪🔧</h4>
 </div>
 
-
 ## ⚠️ Disclaimer ⚠️
 
-This repository and the associated npm package are currently in a 🐣 pre-release state and are being used for testing 🧪 purposes. They are subject to change without notice 📝. Eventually, they will be moved to the **ExpressoTS** organization under the `scylladb-driver` package name. Users are encouraged to use this driver with caution ❗ and not in production environments until the official release under the ExpressoTS organization.
-
+This repository and the associated npm package are currently in a 🐣 pre-release state and are being used for testing 🧪 purposes. They are subject to change without notice 📝. Users are encouraged to use this driver with caution ❗ and not in production environments until the official release.
 
 ## 🚀 Getting Started 🚀
 
