@@ -251,7 +251,7 @@ jobs:
       - check-version-in-commit
       # - test-macOS-windows-binding
       # - test-linux-x64-gnu-binding
-      - universal-macOS
+      # - universal-macOS
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
