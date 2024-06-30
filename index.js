@@ -263,3 +263,9 @@ module.exports.ScyllaPreparedStatement = ScyllaPreparedStatement
 module.exports.Metrics = Metrics
 module.exports.ScyllaSession = ScyllaSession
 module.exports.Uuid = Uuid
+
+const customInspectSymbol = Symbol.for('nodejs.util.inspect.custom')
+
+Uuid.prototype[customInspectSymbol] = function () {
+  return this.toString();
+}
