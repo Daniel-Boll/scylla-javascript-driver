@@ -1,9 +1,17 @@
+use std::fmt::Display;
+
 use scylla::query::Query;
 use scylla::statement::Consistency;
 
 #[napi(js_name = "Query")]
 pub struct ScyllaQuery {
   pub(crate) query: Query,
+}
+
+impl Display for ScyllaQuery {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "ScyllaQuery: {}", self.query.contents)
+  }
 }
 
 #[napi]

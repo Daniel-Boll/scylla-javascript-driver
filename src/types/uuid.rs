@@ -1,6 +1,7 @@
 use napi::Result;
 
 #[napi()]
+#[derive(Debug)]
 pub struct Uuid {
   pub(crate) uuid: uuid::Uuid,
 }

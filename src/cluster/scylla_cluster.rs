@@ -111,7 +111,7 @@ impl ScyllaCluster {
       (Some(Either::A(_)), None) => Ok(None),
     };
 
-    if let Some(keyspace) = keyspace? {
+    if let Some(keyspace) = keyspace.clone()? {
       builder = builder.use_keyspace(keyspace, false);
     }
 
@@ -159,6 +159,18 @@ impl ScyllaCluster {
       builder = builder.compression(compression.into());
     }
 
-    Ok(ScyllaSession::new(builder.build().await.unwrap()))
+    let session = builder.build().await;
+
+    match session {
+      Ok(session) => Ok(ScyllaSession::new(session)),
+      Err(err) => Err(napi::Error::from_reason(format!(
+        "Failed to connect to the database: {} - [{uri}] - Keyspace: {keyspace}",
+        err,
+        uri = self.uri,
+        keyspace = keyspace
+          .unwrap_or(Some("No keyspace provided".to_string()))
+          .unwrap_or("No keyspace provided".to_string())
+      ))),
+    }
   }
 }

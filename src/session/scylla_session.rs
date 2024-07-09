@@ -29,16 +29,24 @@ impl ScyllaSession {
     query: Either<String, &ScyllaPreparedStatement>,
     parameters: Option<Vec<Either3<u32, String, &Uuid>>>,
   ) -> napi::Result<serde_json::Value> {
-    let values = QueryParameter::parser(parameters).unwrap();
+    let values = QueryParameter::parser(parameters.clone()).ok_or(napi::Error::new(
+      napi::Status::InvalidArg,
+      format!("Something went wrong with your query parameters. {parameters:?}"),
+    ))?;
 
-    let query_result = match query {
+    let query_result = match query.clone() {
       Either::A(query) => self.session.query(query, values).await,
       Either::B(prepared) => self.session.execute(&prepared.prepared, values).await,
     }
     .map_err(|_| {
+      let query = match query {
+        Either::A(query) => query,
+        Either::B(prepared) => prepared.prepared.get_statement().to_string(),
+      };
+
       napi::Error::new(
         napi::Status::InvalidArg,
-        "Something went wrong with your query.",
+        format!("Something went wrong with your query. - [{query}] - {parameters:?}"),
       )
     })?;
 
@@ -51,7 +59,10 @@ impl ScyllaSession {
     scylla_query: &ScyllaQuery,
     parameters: Option<Vec<Either3<u32, String, &Uuid>>>,
   ) -> napi::Result<serde_json::Value> {
-    let values = QueryParameter::parser(parameters).unwrap();
+    let values = QueryParameter::parser(parameters.clone()).ok_or(napi::Error::new(
+      napi::Status::InvalidArg,
+      format!("Something went wrong with your query parameters. {parameters:?}"),
+    ))?;
 
     let query_result = self
       .session
@@ -60,7 +71,7 @@ impl ScyllaSession {
       .map_err(|_| {
         napi::Error::new(
           napi::Status::InvalidArg,
-          "Something went wrong with your query.",
+          format!("Something went wrong with your query. - [{scylla_query}] - {parameters:?}"),
         )
       })?;
 
@@ -69,10 +80,10 @@ impl ScyllaSession {
 
   #[napi]
   pub async fn prepare(&self, query: String) -> napi::Result<ScyllaPreparedStatement> {
-    let prepared = self.session.prepare(query).await.map_err(|_| {
+    let prepared = self.session.prepare(query.clone()).await.map_err(|_| {
       napi::Error::new(
         napi::Status::InvalidArg,
-        "Something went wrong with your prepared statement.",
+        format!("Something went wrong with your prepared statement. - [{query}]"),
       )
     })?;
 
