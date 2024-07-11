@@ -14,6 +14,9 @@ struct ScyllaCluster {
   uri: String,
   compression: Option<Compression>,
   default_execution_profile: Option<ExecutionProfile>,
+
+  // connection fields
+  connection: Option<ConnectionOptions>,
 }
 
 #[napi(object)]
@@ -24,15 +27,15 @@ struct ConnectionOptions {
 }
 
 #[napi(object)]
-#[derive(Clone)]
-struct Auth {
+#[derive(Clone, Debug)]
+pub struct Auth {
   pub username: String,
   pub password: String,
 }
 
 #[napi(object)]
 #[derive(Clone)]
-struct Ssl {
+pub struct Ssl {
   pub ca_filepath: String,
   pub verify_mode: Option<VerifyMode>,
 }
@@ -55,6 +58,9 @@ impl ScyllaCluster {
       nodes,
       compression,
       default_execution_profile,
+      keyspace,
+      auth,
+      ssl,
     } = cluster_config;
 
     let uri = nodes.first().expect("at least one node is required");
@@ -63,6 +69,11 @@ impl ScyllaCluster {
       uri: uri.to_string(),
       compression,
       default_execution_profile,
+      connection: Some(ConnectionOptions {
+        keyspace,
+        auth,
+        ssl,
+      }),
     }
   }
 
@@ -76,39 +87,92 @@ impl ScyllaCluster {
     let mut builder = scylla::SessionBuilder::new().known_node(self.uri.as_str());
 
     // TODO: We need to think of a better way to deal with keyspace possibly being options
-    let keyspace = match (&keyspace_or_options, &options) {
+    let keyspace: Result<Option<String>, napi::Error> = match (&keyspace_or_options, &options) {
       (Some(Either::A(keyspace)), _) => Ok(Some(keyspace.clone())),
-      (Some(Either::B(_)), Some(_)) => Err(napi::Error::new(
-        napi::Status::InvalidArg,
-        "Options cannot be provided twice",
-      )),
-      (Some(Either::B(options)), _) => Ok(options.keyspace.clone()),
-      (None, Some(options)) => Ok(options.keyspace.clone()),
-      (None, None) => Ok(None),
+      (Some(Either::B(options)), _) => {
+        if options.keyspace.is_none() {
+          Ok(
+            self
+              .connection
+              .as_ref()
+              .and_then(|conn| conn.keyspace.clone()),
+          )
+        } else {
+          Ok(options.keyspace.clone())
+        }
+      }
+      (None, Some(options)) => {
+        if options.keyspace.is_none() {
+          Ok(
+            self
+              .connection
+              .as_ref()
+              .and_then(|conn| conn.keyspace.clone()),
+          )
+        } else {
+          Ok(options.keyspace.clone())
+        }
+      }
+      (None, None) => Ok(
+        self
+          .connection
+          .as_ref()
+          .and_then(|conn| conn.keyspace.clone()),
+      ),
     };
 
     let auth = match (&keyspace_or_options, &options) {
-      (Some(Either::A(_)), Some(options)) => Ok(options.auth.clone()),
+      (Some(Either::A(_)), Some(options)) => Ok(options.auth.clone()), // when keyspace is provided as a string
+      (Some(Either::A(_)), None) => Ok(self.connection.as_ref().and_then(|conn| conn.auth.clone())), // when keyspace is provided as a string and options is not provided
+      (Some(Either::B(options)), None) => {
+        if options.auth.is_none() {
+          Ok(self.connection.as_ref().and_then(|conn| conn.auth.clone()))
+        } else {
+          Ok(options.auth.clone())
+        }
+      } // when keyspace is provided as an object
       (Some(Either::B(_)), Some(_)) => Err(napi::Error::new(
         napi::Status::InvalidArg,
         "Options cannot be provided twice",
-      )),
-      (Some(Either::B(options)), None) => Ok(options.auth.clone()),
-      (None, Some(options)) => Ok(options.auth.clone()),
-      (None, None) => Ok(None),
-      (Some(Either::A(_)), None) => Ok(None),
+      )), // when keyspace is provided as an object and options is already provided
+      (None, Some(options)) => {
+        if options.auth.is_none() {
+          Ok(self.connection.as_ref().and_then(|conn| conn.auth.clone()))
+        } else {
+          Ok(options.auth.clone())
+        }
+      } // when keyspace is not provided and options is provided (shouldn't happen)
+      (None, None) => Ok(self.connection.as_ref().and_then(|conn| conn.auth.clone())), // when keyspace is not provided and options is not provided
     };
 
     let ssl = match (&keyspace_or_options, &options) {
-      (Some(Either::A(_)), Some(options)) => Ok(options.ssl.clone()),
+      (Some(Either::A(_)), Some(options)) => {
+        if options.ssl.is_none() {
+          Ok(self.connection.as_ref().and_then(|conn| conn.ssl.clone()))
+        } else {
+          Ok(options.ssl.clone())
+        }
+      },
       (Some(Either::B(_)), Some(_)) => Err(napi::Error::new(
         napi::Status::InvalidArg,
         "Options cannot be provided twice",
       )),
-      (Some(Either::B(options)), None) => Ok(options.ssl.clone()),
-      (None, Some(options)) => Ok(options.ssl.clone()),
-      (None, None) => Ok(None),
-      (Some(Either::A(_)), None) => Ok(None),
+      (Some(Either::B(options)), None) => {
+        if options.ssl.is_none() {
+          Ok(self.connection.as_ref().and_then(|conn| conn.ssl.clone()))
+        } else {
+          Ok(options.ssl.clone())
+        }
+      },
+      (None, Some(options)) => {
+        if options.ssl.is_none() {
+          Ok(self.connection.as_ref().and_then(|conn| conn.ssl.clone()))
+        } else {
+          Ok(options.ssl.clone())
+        }
+      },
+      (None, None) => Ok(self.connection.as_ref().and_then(|conn| conn.ssl.clone())),
+      (Some(Either::A(_)), None) => Ok(self.connection.as_ref().and_then(|conn| conn.ssl.clone())),
     };
 
     if let Some(keyspace) = keyspace.clone()? {

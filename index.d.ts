@@ -12,6 +12,9 @@ export interface ClusterConfig {
   nodes: Array<string>
   compression?: Compression
   defaultExecutionProfile?: ExecutionProfile
+  keyspace?: string
+  auth?: Auth
+  ssl?: Ssl
 }
 export const enum Consistency {
   Any = 0,
