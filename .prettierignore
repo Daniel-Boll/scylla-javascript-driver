@@ -1,5 +1,8 @@
 target
 .yarn
-index.js
+/*.js
+/*.mjs
+/*.cjs
+/index.js
 index.d.ts
 pnpm-lock.yaml
