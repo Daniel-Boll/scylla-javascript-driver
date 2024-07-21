@@ -15,8 +15,8 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0
       '@napi-rs/cli':
-        specifier: 3.0.0-alpha.60
-        version: 3.0.0-alpha.60(@emnapi/runtime@1.2.0)(emnapi@1.2.0)
+        specifier: 3.0.0-alpha.62
+        version: 3.0.0-alpha.62(@emnapi/runtime@1.2.0)(emnapi@1.2.0)
       '@napi-rs/wasm-runtime':
         specifier: ^0.2.4
         version: 0.2.4
@@ -130,8 +130,8 @@ packages:
     resolution: {integrity: sha512-Yhlar6v9WQgUp/He7BdgzOz8lqMQ8sU+jkCq7Wx8Myc5YFJLbEe7lgui/V7G1qB1DJykHSGwreceSaD60Y0PUQ==}
     hasBin: true
 
-  '@napi-rs/cli@3.0.0-alpha.60':
-    resolution: {integrity: sha512-FVHjxlz83X3MYRc7L+hnhJgokbEoicujDHPk2XFcv3sxlJwVMHGxt5RjnPQpNo5iA4sEzWw+SKt2rtOAJjUHew==}
+  '@napi-rs/cli@3.0.0-alpha.62':
+    resolution: {integrity: sha512-IDUwHAEJZ9ad/s5oyhznrz5ZDcU+SJ6GdP5nb++Wx5MkS4FD9MeS3HfNZdsxkf10pOUPnmvCVFuG4xnLBQYmjw==}
     engines: {node: '>= 16'}
     hasBin: true
     peerDependencies:
@@ -1804,7 +1804,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@napi-rs/cli@3.0.0-alpha.60(@emnapi/runtime@1.2.0)(emnapi@1.2.0)':
+  '@napi-rs/cli@3.0.0-alpha.62(@emnapi/runtime@1.2.0)(emnapi@1.2.0)':
     dependencies:
       '@napi-rs/cross-toolchain': 0.0.16
       '@napi-rs/wasm-tools': 0.0.2
