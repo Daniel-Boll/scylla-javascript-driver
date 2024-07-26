@@ -15,6 +15,10 @@ export interface ClusterConfig {
   keyspace?: string
   auth?: Auth
   ssl?: Ssl
+  /** The driver automatically awaits schema agreement after a schema-altering query is executed. Waiting for schema agreement more than necessary is never a bug, but might slow down applications which do a lot of schema changes (e.g. a migration). For instance, in case where somebody wishes to create a keyspace and then a lot of tables in it, it makes sense only to wait after creating a keyspace and after creating all the tables rather than after every query. */
+  autoAwaitSchemaAgreement?: boolean
+  /** If the schema is not agreed upon, the driver sleeps for a duration in seconds before checking it again. The default value is 0.2 (200 milliseconds) */
+  schemaAgreementInterval?: number
 }
 export const enum Consistency {
   Any = 0,
@@ -134,6 +138,34 @@ export class ScyllaSession {
    * ```
    */
   useKeyspace(keyspaceName: string, caseSensitive?: boolean | undefined | null): Promise<void>
+  /**
+   * session.awaitSchemaAgreement returns a Promise that can be awaited as long as schema is not in an agreement.
+   * However, it won’t wait forever; ClusterConfig defines a timeout that limits the time of waiting. If the timeout elapses,
+   * the return value is an error, otherwise it is the schema_version.
+   *
+   * # Returns
+   *
+   * * `Promise<Uuid>` - schema_version
+   *
+   * # Errors
+   * * `GenericFailure` - if the timeout elapses
+   *
+   * # Example
+   * ```javascript
+   * import { Cluster } from ".";
+   *
+   * const cluster = new Cluster({ nodes: ["127.0.0.1:9042"] });
+   * const session = await cluster.connect();
+   *
+   * const schemaVersion = await session.awaitSchemaAgreement().catch(console.error);
+   * console.log(schemaVersion);
+   *
+   * const isAgreed = await session.checkSchemaAgreement().catch(console.error);
+   * console.log(isAgreed);
+   * ```
+   */
+  awaitSchemaAgreement(): Promise<Uuid>
+  checkSchemaAgreement(): Promise<boolean>
 }
 export class Uuid {
   /** Generates a random UUID v4. */

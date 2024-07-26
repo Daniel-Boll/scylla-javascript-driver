@@ -146,4 +146,62 @@ impl ScyllaSession {
 
     Ok(())
   }
+
+  /// session.awaitSchemaAgreement returns a Promise that can be awaited as long as schema is not in an agreement.
+  /// However, it won’t wait forever; ClusterConfig defines a timeout that limits the time of waiting. If the timeout elapses,
+  /// the return value is an error, otherwise it is the schema_version.
+  ///
+  /// # Returns
+  ///
+  /// * `Promise<Uuid>` - schema_version
+  ///
+  /// # Errors
+  /// * `GenericFailure` - if the timeout elapses
+  ///
+  /// # Example
+  /// ```javascript
+  /// import { Cluster } from ".";
+  ///
+  /// const cluster = new Cluster({ nodes: ["127.0.0.1:9042"] });
+  /// const session = await cluster.connect();
+  ///
+  /// const schemaVersion = await session.awaitSchemaAgreement().catch(console.error);
+  /// console.log(schemaVersion);
+  ///
+  /// const isAgreed = await session.checkSchemaAgreement().catch(console.error);
+  /// console.log(isAgreed);
+  /// ```
+  #[napi]
+  pub async fn await_schema_agreement(&self) -> napi::Result<Uuid> {
+    Ok(
+      self
+        .session
+        .await_schema_agreement()
+        .await
+        .map_err(|e| {
+          napi::Error::new(
+            napi::Status::GenericFailure,
+            format!("Something went wrong with your schema agreement. - {e}"),
+          )
+        })?
+        .into(),
+    )
+  }
+
+  #[napi]
+  pub async fn check_schema_agreement(&self) -> napi::Result<bool> {
+    Ok(
+      self
+        .session
+        .check_schema_agreement()
+        .await
+        .map_err(|e| {
+          napi::Error::new(
+            napi::Status::GenericFailure,
+            format!("Something went wrong with your schema agreement. - {e}"),
+          )
+        })?
+        .is_some(),
+    )
+  }
 }
