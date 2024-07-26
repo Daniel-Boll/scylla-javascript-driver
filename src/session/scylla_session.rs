@@ -89,4 +89,61 @@ impl ScyllaSession {
 
     Ok(ScyllaPreparedStatement::new(prepared))
   }
+
+  /// Sends `USE <keyspace_name>` request on all connections\
+  /// This allows to write `SELECT * FROM table` instead of `SELECT * FROM keyspace.table`\
+  ///
+  /// Note that even failed `useKeyspace` can change currently used keyspace - the request is sent on all connections and
+  /// can overwrite previously used keyspace.
+  ///
+  /// Call only one `useKeyspace` at a time.\
+  /// Trying to do two `useKeyspace` requests simultaneously with different names
+  /// can end with some connections using one keyspace and the rest using the other.
+  ///
+  /// # Arguments
+  ///
+  /// * `keyspaceName` - keyspace name to use,
+  /// keyspace names can have up to 48 alphanumeric characters and contain underscores
+  /// * `caseSensitive` - if set to true the generated query will put keyspace name in quotes
+  ///
+  /// # Errors
+  ///
+  /// * `InvalidArg` - if the keyspace name is invalid
+  ///
+  /// # Example
+  ///
+  /// ```javascript
+  /// import { Cluster } from ".";
+  ///
+  /// const cluster = new Cluster({
+  ///   nodes: ["127.0.0.1:9042"],
+  /// });
+  ///
+  /// const session = await cluster.connect();
+  ///
+  /// await session.useKeyspace("system_schema");
+  ///
+  /// const result = await session
+  ///   .execute("SELECT * FROM scylla_tables limit ?", [1])
+  ///   .catch((err) => console.error(err));
+  /// ```
+  #[napi]
+  pub async fn use_keyspace(
+    &self,
+    keyspace_name: String,
+    case_sensitive: Option<bool>,
+  ) -> napi::Result<()> {
+    self
+      .session
+      .use_keyspace(keyspace_name.clone(), case_sensitive.unwrap_or(false))
+      .await
+      .map_err(|e| {
+        napi::Error::new(
+          napi::Status::InvalidArg,
+          format!("Something went wrong with your keyspace. - [{keyspace_name}]\n{e}"),
+        )
+      })?;
+
+    Ok(())
+  }
 }
