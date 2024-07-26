@@ -94,6 +94,46 @@ export class ScyllaSession {
   execute(query: string | ScyllaPreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
   query(scyllaQuery: Query, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
   prepare(query: string): Promise<ScyllaPreparedStatement>
+  /**
+   * Sends `USE <keyspace_name>` request on all connections\
+   * This allows to write `SELECT * FROM table` instead of `SELECT * FROM keyspace.table`\
+   *
+   * Note that even failed `useKeyspace` can change currently used keyspace - the request is sent on all connections and
+   * can overwrite previously used keyspace.
+   *
+   * Call only one `useKeyspace` at a time.\
+   * Trying to do two `useKeyspace` requests simultaneously with different names
+   * can end with some connections using one keyspace and the rest using the other.
+   *
+   * # Arguments
+   *
+   * * `keyspaceName` - keyspace name to use,
+   * keyspace names can have up to 48 alphanumeric characters and contain underscores
+   * * `caseSensitive` - if set to true the generated query will put keyspace name in quotes
+   *
+   * # Errors
+   *
+   * * `InvalidArg` - if the keyspace name is invalid
+   *
+   * # Example
+   *
+   * ```javascript
+   * import { Cluster } from ".";
+   *
+   * const cluster = new Cluster({
+   *   nodes: ["127.0.0.1:9042"],
+   * });
+   *
+   * const session = await cluster.connect();
+   *
+   * await session.useKeyspace("system_schema");
+   *
+   * const result = await session
+   *   .execute("SELECT * FROM scylla_tables limit ?", [1])
+   *   .catch((err) => console.error(err));
+   * ```
+   */
+  useKeyspace(keyspaceName: string, caseSensitive?: boolean | undefined | null): Promise<void>
 }
 export class Uuid {
   /** Generates a random UUID v4. */
