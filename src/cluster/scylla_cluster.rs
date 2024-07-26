@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use napi::Either;
 use openssl::ssl::SslContextBuilder;
 
@@ -14,6 +16,8 @@ struct ScyllaCluster {
   uri: String,
   compression: Option<Compression>,
   default_execution_profile: Option<ExecutionProfile>,
+  auto_await_schema_agreement: Option<bool>,
+  schema_agreement_interval: Option<Duration>,
 
   // connection fields
   connection: Option<ConnectionOptions>,
@@ -61,6 +65,8 @@ impl ScyllaCluster {
       keyspace,
       auth,
       ssl,
+      auto_await_schema_agreement,
+      schema_agreement_interval,
     } = cluster_config;
 
     let uri = nodes.first().expect("at least one node is required");
@@ -74,6 +80,8 @@ impl ScyllaCluster {
         auth,
         ssl,
       }),
+      auto_await_schema_agreement,
+      schema_agreement_interval: schema_agreement_interval.map(|d| Duration::from_secs(d as u64)),
     }
   }
 
@@ -152,7 +160,7 @@ impl ScyllaCluster {
         } else {
           Ok(options.ssl.clone())
         }
-      },
+      }
       (Some(Either::B(_)), Some(_)) => Err(napi::Error::new(
         napi::Status::InvalidArg,
         "Options cannot be provided twice",
@@ -163,14 +171,14 @@ impl ScyllaCluster {
         } else {
           Ok(options.ssl.clone())
         }
-      },
+      }
       (None, Some(options)) => {
         if options.ssl.is_none() {
           Ok(self.connection.as_ref().and_then(|conn| conn.ssl.clone()))
         } else {
           Ok(options.ssl.clone())
         }
-      },
+      }
       (None, None) => Ok(self.connection.as_ref().and_then(|conn| conn.ssl.clone())),
       (Some(Either::A(_)), None) => Ok(self.connection.as_ref().and_then(|conn| conn.ssl.clone())),
     };
@@ -210,6 +218,14 @@ impl ScyllaCluster {
           napi::Status::InvalidArg,
           format!("Failed to set CA file: {}", err),
         ));
+      }
+
+      if let Some(auto_await_schema_agreement) = self.auto_await_schema_agreement {
+        builder = builder.auto_await_schema_agreement(auto_await_schema_agreement);
+      }
+
+      if let Some(schema_agreement_interval) = self.schema_agreement_interval {
+        builder = builder.schema_agreement_interval(schema_agreement_interval);
       }
 
       builder = builder.ssl_context(Some(ssl_builder.build()));
