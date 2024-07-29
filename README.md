@@ -46,7 +46,7 @@ These instructions will get you a copy of the project up and running 🏃 on you
 
    const result = await session
      .execute("SELECT * FROM scylla_tables limit ?", [1])
-     .catch((err) => console.error(err));
+     .catch(console.error);
 
    console.log(result);
    ```
@@ -60,6 +60,10 @@ To install this package, use the following command:
 ```bash
 npm install @lambda-group/scylladb
 ```
+
+## 📚 Examples 📚
+
+Reference wise you can guide yourself through the [examples/](https://github.com/Daniel-Boll/scylla-javascript-driver/tree/main/examples) folder in the repo.
 
 ## 🙏 Acknowledgments 🙏
 
