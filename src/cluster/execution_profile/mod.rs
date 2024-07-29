@@ -1,11 +1,14 @@
 pub mod consistency;
+pub mod serial_consistency;
 
 use self::consistency::Consistency;
+use self::serial_consistency::SerialConsistency;
 
 #[napi(object)]
 #[derive(Copy, Clone)]
 pub struct ExecutionProfile {
   pub consistency: Option<Consistency>,
+  pub serial_consistency: Option<SerialConsistency>,
   pub request_timeout: Option<u32>,
 }
 
@@ -16,6 +19,8 @@ impl ExecutionProfile {
     if let Some(consistency) = self.consistency {
       ec_builder = ec_builder.consistency(consistency.into());
     }
+
+    ec_builder = ec_builder.serial_consistency(self.serial_consistency.map(|sc| sc.into()));
 
     if let Some(request_timeout) = self.request_timeout {
       ec_builder =

@@ -33,8 +33,13 @@ export const enum Consistency {
   Serial = 8,
   LocalSerial = 9
 }
+export const enum SerialConsistency {
+  Serial = 8,
+  LocalSerial = 9
+}
 export interface ExecutionProfile {
   consistency?: Consistency
+  serialConsistency?: SerialConsistency
   requestTimeout?: number
 }
 export interface ConnectionOptions {
@@ -69,9 +74,13 @@ export class Cluster {
 export type ScyllaQuery = Query
 export class Query {
   constructor(query: string)
+  setConsistency(consistency: Consistency): void
+  setSerialConsistency(serialConsistency: SerialConsistency): void
+  setPageSize(pageSize: number): void
 }
 export class ScyllaPreparedStatement {
   setConsistency(consistency: Consistency): void
+  setSerialConsistency(serialConsistency: SerialConsistency): void
 }
 export class Metrics {
   /** Returns counter for nonpaged queries */
@@ -95,7 +104,7 @@ export class Metrics {
 }
 export class ScyllaSession {
   metrics(): Metrics
-  execute(query: string | ScyllaPreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
+  execute(query: string | Query | ScyllaPreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
   query(scyllaQuery: Query, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
   prepare(query: string): Promise<ScyllaPreparedStatement>
   /**
