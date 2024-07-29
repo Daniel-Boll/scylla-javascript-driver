@@ -121,7 +121,7 @@ export class Metrics {
 }
 export class ScyllaSession {
   metrics(): Metrics
-  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
+  execute<T = unknown>(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<T>
   query(scyllaQuery: Query, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
   prepare(query: string): Promise<PreparedStatement>
   batch(batch: BatchStatement, parameters: Array<Array<number | string | Uuid> | undefined | null>): Promise<any>
