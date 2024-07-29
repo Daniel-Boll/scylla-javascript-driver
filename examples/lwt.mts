@@ -6,10 +6,10 @@ const cluster = new Cluster({ nodes });
 
 const session = await cluster.connect();
 
-await session.execute("CREATE KEYSPACE IF NOT EXISTS examples_ks WITH REPLICATION = {'class' : 'NetworkTopologyStrategy', 'replication_factor' : 1}");
-await session.execute("CREATE TABLE IF NOT EXISTS examples_ks.tab (a int PRIMARY KEY)");
+await session.execute("CREATE KEYSPACE IF NOT EXISTS lwt WITH REPLICATION = {'class' : 'NetworkTopologyStrategy', 'replication_factor' : 1}");
+await session.execute("CREATE TABLE IF NOT EXISTS lwt.tab (a int PRIMARY KEY)");
 
-const query = new Query("INSERT INTO examples_ks.tab (a) VALUES(?) IF NOT EXISTS");
+const query = new Query("INSERT INTO lwt.tab (a) VALUES(?) IF NOT EXISTS");
 query.setConsistency(Consistency.One);
 query.setSerialConsistency(SerialConsistency.Serial);
 

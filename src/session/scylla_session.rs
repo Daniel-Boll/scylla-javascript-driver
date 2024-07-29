@@ -1,7 +1,8 @@
 use crate::helpers::query_parameter::QueryParameter;
 use crate::helpers::query_results::QueryResult;
-use crate::query::scylla_prepared_statement::ScyllaPreparedStatement;
-use crate::query::scylla_query::ScyllaQuery;
+use crate::query::batch_statement::ScyllaBatchStatement;
+use crate::query::scylla_prepared_statement::PreparedStatement;
+use crate::query::scylla_query::Query;
 use crate::types::uuid::Uuid;
 use napi::bindgen_prelude::Either3;
 
@@ -26,7 +27,7 @@ impl ScyllaSession {
   #[napi]
   pub async fn execute(
     &self,
-    query: Either3<String, &ScyllaQuery, &ScyllaPreparedStatement>,
+    query: Either3<String, &Query, &PreparedStatement>,
     parameters: Option<Vec<Either3<u32, String, &Uuid>>>,
   ) -> napi::Result<serde_json::Value> {
     let values = QueryParameter::parser(parameters.clone()).ok_or(napi::Error::new(
@@ -58,7 +59,7 @@ impl ScyllaSession {
   #[napi]
   pub async fn query(
     &self,
-    scylla_query: &ScyllaQuery,
+    scylla_query: &Query,
     parameters: Option<Vec<Either3<u32, String, &Uuid>>>,
   ) -> napi::Result<serde_json::Value> {
     let values = QueryParameter::parser(parameters.clone()).ok_or(napi::Error::new(
@@ -81,7 +82,7 @@ impl ScyllaSession {
   }
 
   #[napi]
-  pub async fn prepare(&self, query: String) -> napi::Result<ScyllaPreparedStatement> {
+  pub async fn prepare(&self, query: String) -> napi::Result<PreparedStatement> {
     let prepared = self.session.prepare(query.clone()).await.map_err(|_| {
       napi::Error::new(
         napi::Status::InvalidArg,
@@ -89,7 +90,38 @@ impl ScyllaSession {
       )
     })?;
 
-    Ok(ScyllaPreparedStatement::new(prepared))
+    Ok(PreparedStatement::new(prepared))
+  }
+
+  #[napi]
+  #[allow(clippy::type_complexity)]
+  pub async fn batch(
+    &self,
+    batch: &ScyllaBatchStatement,
+    parameters: Vec<Option<Vec<Either3<u32, String, &Uuid>>>>,
+  ) -> napi::Result<serde_json::Value> {
+    let values = parameters
+      .iter()
+      .map(|params| {
+        QueryParameter::parser(params.clone()).ok_or(napi::Error::new(
+          napi::Status::InvalidArg,
+          format!("Something went wrong with your batch parameters. {parameters:?}"),
+        ))
+      })
+      .collect::<napi::Result<Vec<_>>>()?;
+
+    let query_result = self
+      .session
+      .batch(&batch.batch, values)
+      .await
+      .map_err(|e| {
+        napi::Error::new(
+          napi::Status::InvalidArg,
+          format!("Something went wrong with your batch. - [{batch}] - {parameters:?}\n{e}"),
+        )
+      })?;
+
+    Ok(QueryResult::parser(query_result))
   }
 
   /// Sends `USE <keyspace_name>` request on all connections\

@@ -3,25 +3,25 @@ use std::fmt::Display;
 use crate::cluster::execution_profile::{
   consistency::Consistency, serial_consistency::SerialConsistency,
 };
-use scylla::query::Query;
+use scylla::query;
 
-#[napi(js_name = "Query")]
-pub struct ScyllaQuery {
-  pub(crate) query: Query,
+#[napi]
+pub struct Query {
+  pub(crate) query: query::Query,
 }
 
-impl Display for ScyllaQuery {
+impl Display for Query {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "ScyllaQuery: {}", self.query.contents)
   }
 }
 
 #[napi]
-impl ScyllaQuery {
+impl Query {
   #[napi(constructor)]
   pub fn new(query: String) -> Self {
     Self {
-      query: Query::new(query),
+      query: query::Query::new(query),
     }
   }
 
