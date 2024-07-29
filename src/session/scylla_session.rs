@@ -3,7 +3,7 @@ use crate::helpers::query_results::QueryResult;
 use crate::query::scylla_prepared_statement::ScyllaPreparedStatement;
 use crate::query::scylla_query::ScyllaQuery;
 use crate::types::uuid::Uuid;
-use napi::bindgen_prelude::{Either, Either3};
+use napi::bindgen_prelude::Either3;
 
 use super::metrics;
 
@@ -26,7 +26,7 @@ impl ScyllaSession {
   #[napi]
   pub async fn execute(
     &self,
-    query: Either<String, &ScyllaPreparedStatement>,
+    query: Either3<String, &ScyllaQuery, &ScyllaPreparedStatement>,
     parameters: Option<Vec<Either3<u32, String, &Uuid>>>,
   ) -> napi::Result<serde_json::Value> {
     let values = QueryParameter::parser(parameters.clone()).ok_or(napi::Error::new(
@@ -35,13 +35,15 @@ impl ScyllaSession {
     ))?;
 
     let query_result = match query.clone() {
-      Either::A(query) => self.session.query(query, values).await,
-      Either::B(prepared) => self.session.execute(&prepared.prepared, values).await,
+      Either3::A(query) => self.session.query(query, values).await,
+      Either3::B(query) => self.session.query(query.query.clone(), values).await,
+      Either3::C(prepared) => self.session.execute(&prepared.prepared, values).await,
     }
     .map_err(|_| {
       let query = match query {
-        Either::A(query) => query,
-        Either::B(prepared) => prepared.prepared.get_statement().to_string(),
+        Either3::A(query) => query,
+        Either3::B(query) => query.query.contents.clone(),
+        Either3::C(prepared) => prepared.prepared.get_statement().to_string(),
       };
 
       napi::Error::new(
