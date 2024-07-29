@@ -310,15 +310,16 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { Compression, Consistency, SerialConsistency, Cluster, VerifyMode, Query, ScyllaPreparedStatement, Metrics, ScyllaSession, Uuid } = nativeBinding
+const { Compression, Consistency, SerialConsistency, Cluster, VerifyMode, BatchStatement, PreparedStatement, Query, Metrics, ScyllaSession, Uuid } = nativeBinding
 
 module.exports.Compression = Compression
 module.exports.Consistency = Consistency
 module.exports.SerialConsistency = SerialConsistency
 module.exports.Cluster = Cluster
 module.exports.VerifyMode = VerifyMode
+module.exports.BatchStatement = BatchStatement
+module.exports.PreparedStatement = PreparedStatement
 module.exports.Query = Query
-module.exports.ScyllaPreparedStatement = ScyllaPreparedStatement
 module.exports.Metrics = Metrics
 module.exports.ScyllaSession = ScyllaSession
 module.exports.Uuid = Uuid

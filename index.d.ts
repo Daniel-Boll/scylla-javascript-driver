@@ -71,16 +71,33 @@ export class Cluster {
   /** Connect to the cluster */
   connect(keyspaceOrOptions?: string | ConnectionOptions | undefined | null, options?: ConnectionOptions | undefined | null): Promise<ScyllaSession>
 }
-export type ScyllaQuery = Query
+export type ScyllaBatchStatement = BatchStatement
+/**
+ * Batch statements
+ *
+ * A batch statement allows to execute many data-modifying statements at once.
+ * These statements can be simple or prepared.
+ * Only INSERT, UPDATE and DELETE statements are allowed.
+ */
+export class BatchStatement {
+  constructor()
+  /**
+   * Appends a statement to the batch.
+   *
+   * _Warning_
+   * Using simple statements with bind markers in batches is strongly discouraged. For each simple statement with a non-empty list of values in the batch, the driver will send a prepare request, and it will be done sequentially. Results of preparation are not cached between `session.batch` calls. Consider preparing the statements before putting them into the batch.
+   */
+  appendStatement(statement: Query | PreparedStatement): void
+}
+export class PreparedStatement {
+  setConsistency(consistency: Consistency): void
+  setSerialConsistency(serialConsistency: SerialConsistency): void
+}
 export class Query {
   constructor(query: string)
   setConsistency(consistency: Consistency): void
   setSerialConsistency(serialConsistency: SerialConsistency): void
   setPageSize(pageSize: number): void
-}
-export class ScyllaPreparedStatement {
-  setConsistency(consistency: Consistency): void
-  setSerialConsistency(serialConsistency: SerialConsistency): void
 }
 export class Metrics {
   /** Returns counter for nonpaged queries */
@@ -104,9 +121,10 @@ export class Metrics {
 }
 export class ScyllaSession {
   metrics(): Metrics
-  execute(query: string | Query | ScyllaPreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
+  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
   query(scyllaQuery: Query, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
-  prepare(query: string): Promise<ScyllaPreparedStatement>
+  prepare(query: string): Promise<PreparedStatement>
+  batch(batch: BatchStatement, parameters: Array<Array<number | string | Uuid> | undefined | null>): Promise<any>
   /**
    * Sends `USE <keyspace_name>` request on all connections\
    * This allows to write `SELECT * FROM table` instead of `SELECT * FROM keyspace.table`\

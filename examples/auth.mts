@@ -12,7 +12,7 @@ const cluster = new Cluster({
 
 const session = await cluster.connect();
 
-await session.execute("CREATE KEYSPACE IF NOT EXISTS examples_ks WITH REPLICATION = {'class' : 'NetworkTopologyStrategy', 'replication_factor' : 1}");
-await session.execute("DROP TABLE IF EXISTS examples_ks.auth");
+await session.execute("CREATE KEYSPACE IF NOT EXISTS auth WITH REPLICATION = {'class' : 'NetworkTopologyStrategy', 'replication_factor' : 1}");
+await session.execute("DROP TABLE IF EXISTS auth.auth");
 
 console.log("Ok.");

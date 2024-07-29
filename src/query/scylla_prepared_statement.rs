@@ -1,17 +1,17 @@
-use scylla::prepared_statement::PreparedStatement;
+use scylla::prepared_statement;
 
 use crate::cluster::execution_profile::{
   consistency::Consistency, serial_consistency::SerialConsistency,
 };
 
 #[napi]
-pub struct ScyllaPreparedStatement {
-  pub(crate) prepared: PreparedStatement,
+pub struct PreparedStatement {
+  pub(crate) prepared: prepared_statement::PreparedStatement,
 }
 
 #[napi]
-impl ScyllaPreparedStatement {
-  pub fn new(prepared: PreparedStatement) -> Self {
+impl PreparedStatement {
+  pub fn new(prepared: prepared_statement::PreparedStatement) -> Self {
     Self { prepared }
   }
 
