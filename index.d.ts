@@ -121,7 +121,8 @@ export class Metrics {
 }
 export class ScyllaSession {
   metrics(): Metrics
-  execute<T = unknown>(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<T>
+  getClusterData(): Promise<ClusterDataSimplified>
+  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
   query(scyllaQuery: Query, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
   prepare(query: string): Promise<PreparedStatement>
   batch(batch: BatchStatement, parameters: Array<Array<number | string | Uuid> | undefined | null>): Promise<any>
@@ -193,6 +194,23 @@ export class ScyllaSession {
    */
   awaitSchemaAgreement(): Promise<Uuid>
   checkSchemaAgreement(): Promise<boolean>
+}
+export class ClusterDataSimplified {
+  getKeyspaceInfo(): Record<string, KeyspaceSimplified> | null
+}
+export class KeyspaceSimplified {
+  tables: Record<string, TableSimplified>
+  views: Record<string, MaterializedViewSimplified>
+}
+export class TableSimplified {
+  columns: Array<string>
+  partitionKey: Array<string>
+  clusteringKey: Array<string>
+  partitioner?: string
+}
+export class MaterializedViewSimplified {
+  viewMetadata: TableSimplified
+  baseTableName: string
 }
 export class Uuid {
   /** Generates a random UUID v4. */
