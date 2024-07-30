@@ -1,0 +1,3 @@
+[submodule "examples/carepet-nestjs"]
+	path = examples/carepet-nestjs
+	url = https://github.com/daniel-Boll/carepet-nestjs.git
