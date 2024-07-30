@@ -122,9 +122,46 @@ export class Metrics {
 export class ScyllaSession {
   metrics(): Metrics
   execute<T = unknown>(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<T>
-  query(scyllaQuery: Query, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
+  query<T = unknown>(scyllaQuery: Query, parameters?: Array<number | string | Uuid> | undefined | null): Promise<T>
   prepare(query: string): Promise<PreparedStatement>
-  batch(batch: BatchStatement, parameters: Array<Array<number | string | Uuid> | undefined | null>): Promise<any>
+  /**
+   * Perform a batch query\
+   * Batch contains many `simple` or `prepared` queries which are executed at once\
+   * Batch doesn't return any rows
+   *
+   * Batch values must contain values for each of the queries
+   *
+   * See [the book](https://rust-driver.docs.scylladb.com/stable/queries/batch.html) for more information
+   *
+   * # Arguments
+   * * `batch` - Batch to be performed
+   * * `values` - List of values for each query, it's the easiest to use an array of arrays
+   *
+   * # Example
+   * ```javascript
+   * const nodes = process.env.CLUSTER_NODES?.split(",") ?? ["127.0.0.1:9042"];
+   *
+   * const cluster = new Cluster({ nodes });
+   * const session = await cluster.connect();
+   *
+   * const batch = new BatchStatement();
+   *
+   * await session.execute("CREATE KEYSPACE IF NOT EXISTS batch_statements WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }");
+   * await session.useKeyspace("batch_statements");
+   * await session.execute("CREATE TABLE IF NOT EXISTS users (id UUID PRIMARY KEY, name TEXT)");
+   *
+   * const simpleStatement = new Query("INSERT INTO users (id, name) VALUES (?, ?)");
+   * const preparedStatement = await session.prepare("INSERT INTO users (id, name) VALUES (?, ?)");
+   *
+   * batch.appendStatement(simpleStatement);
+   * batch.appendStatement(preparedStatement);
+   *
+   * await session.batch(batch, [[Uuid.randomV4(), "Alice"], [Uuid.randomV4(), "Bob"]]);
+   *
+   * console.log(await session.execute("SELECT * FROM users"));
+   * ```
+   */
+  batch<T = unknown>(batch: BatchStatement, parameters: Array<Array<number | string | Uuid> | undefined | null>): Promise<T>
   /**
    * Sends `USE <keyspace_name>` request on all connections\
    * This allows to write `SELECT * FROM table` instead of `SELECT * FROM keyspace.table`\
@@ -161,7 +198,7 @@ export class ScyllaSession {
    *
    * const result = await session
    *   .execute("SELECT * FROM scylla_tables limit ?", [1])
-   *   .catch((err) => console.error(err));
+   *   .catch(console.error);
    * ```
    */
   useKeyspace(keyspaceName: string, caseSensitive?: boolean | undefined | null): Promise<void>

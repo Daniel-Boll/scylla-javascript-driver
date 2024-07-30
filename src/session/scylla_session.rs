@@ -40,7 +40,7 @@ impl ScyllaSession {
       Either3::B(query) => self.session.query(query.query.clone(), values).await,
       Either3::C(prepared) => self.session.execute(&prepared.prepared, values).await,
     }
-    .map_err(|_| {
+    .map_err(|e| {
       let query = match query {
         Either3::A(query) => query,
         Either3::B(query) => query.query.contents.clone(),
@@ -49,7 +49,7 @@ impl ScyllaSession {
 
       napi::Error::new(
         napi::Status::InvalidArg,
-        format!("Something went wrong with your query. - [{query}] - {parameters:?}"),
+        format!("Something went wrong with your query. - [{query}] - {parameters:?}\n{e}"),
       )
     })?;
 
@@ -71,10 +71,10 @@ impl ScyllaSession {
       .session
       .query(scylla_query.query.clone(), values)
       .await
-      .map_err(|_| {
+      .map_err(|e| {
         napi::Error::new(
           napi::Status::InvalidArg,
-          format!("Something went wrong with your query. - [{scylla_query}] - {parameters:?}"),
+          format!("Something went wrong with your query. - [{scylla_query}] - {parameters:?}\n{e}"),
         )
       })?;
 
@@ -83,16 +83,51 @@ impl ScyllaSession {
 
   #[napi]
   pub async fn prepare(&self, query: String) -> napi::Result<PreparedStatement> {
-    let prepared = self.session.prepare(query.clone()).await.map_err(|_| {
+    let prepared = self.session.prepare(query.clone()).await.map_err(|e| {
       napi::Error::new(
         napi::Status::InvalidArg,
-        format!("Something went wrong with your prepared statement. - [{query}]"),
+        format!("Something went wrong with your prepared statement. - [{query}]\n{e}"),
       )
     })?;
 
     Ok(PreparedStatement::new(prepared))
   }
 
+  /// Perform a batch query\
+  /// Batch contains many `simple` or `prepared` queries which are executed at once\
+  /// Batch doesn't return any rows
+  ///
+  /// Batch values must contain values for each of the queries
+  ///
+  /// See [the book](https://rust-driver.docs.scylladb.com/stable/queries/batch.html) for more information
+  ///
+  /// # Arguments
+  /// * `batch` - Batch to be performed
+  /// * `values` - List of values for each query, it's the easiest to use an array of arrays
+  ///
+  /// # Example
+  /// ```javascript
+  /// const nodes = process.env.CLUSTER_NODES?.split(",") ?? ["127.0.0.1:9042"];
+  ///
+  /// const cluster = new Cluster({ nodes });
+  /// const session = await cluster.connect();
+  ///
+  /// const batch = new BatchStatement();
+  ///
+  /// await session.execute("CREATE KEYSPACE IF NOT EXISTS batch_statements WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }");
+  /// await session.useKeyspace("batch_statements");
+  /// await session.execute("CREATE TABLE IF NOT EXISTS users (id UUID PRIMARY KEY, name TEXT)");
+  ///
+  /// const simpleStatement = new Query("INSERT INTO users (id, name) VALUES (?, ?)");
+  /// const preparedStatement = await session.prepare("INSERT INTO users (id, name) VALUES (?, ?)");
+  ///
+  /// batch.appendStatement(simpleStatement);
+  /// batch.appendStatement(preparedStatement);
+  ///
+  /// await session.batch(batch, [[Uuid.randomV4(), "Alice"], [Uuid.randomV4(), "Bob"]]);
+  ///
+  /// console.log(await session.execute("SELECT * FROM users"));
+  /// ```
   #[napi]
   #[allow(clippy::type_complexity)]
   pub async fn batch(
@@ -159,7 +194,7 @@ impl ScyllaSession {
   ///
   /// const result = await session
   ///   .execute("SELECT * FROM scylla_tables limit ?", [1])
-  ///   .catch((err) => console.error(err));
+  ///   .catch(console.error);
   /// ```
   #[napi]
   pub async fn use_keyspace(
