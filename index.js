@@ -310,7 +310,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { Compression, Consistency, SerialConsistency, Cluster, VerifyMode, BatchStatement, PreparedStatement, Query, Metrics, ScyllaSession, ClusterDataSimplified, KeyspaceSimplified, TableSimplified, MaterializedViewSimplified, Uuid } = nativeBinding
+const { Compression, Consistency, SerialConsistency, Cluster, VerifyMode, BatchStatement, PreparedStatement, Query, Metrics, ScyllaSession, ScyllaClusterData, Uuid } = nativeBinding
 
 module.exports.Compression = Compression
 module.exports.Consistency = Consistency
@@ -322,10 +322,7 @@ module.exports.PreparedStatement = PreparedStatement
 module.exports.Query = Query
 module.exports.Metrics = Metrics
 module.exports.ScyllaSession = ScyllaSession
-module.exports.ClusterDataSimplified = ClusterDataSimplified
-module.exports.KeyspaceSimplified = KeyspaceSimplified
-module.exports.TableSimplified = TableSimplified
-module.exports.MaterializedViewSimplified = MaterializedViewSimplified
+module.exports.ScyllaClusterData = ScyllaClusterData
 module.exports.Uuid = Uuid
 
 const customInspectSymbol = Symbol.for('nodejs.util.inspect.custom')

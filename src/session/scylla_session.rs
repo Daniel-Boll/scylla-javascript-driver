@@ -7,8 +7,8 @@ use crate::query::batch_statement::ScyllaBatchStatement;
 use crate::query::scylla_prepared_statement::PreparedStatement;
 use crate::query::scylla_query::Query;
 use crate::types::uuid::Uuid;
-use napi::bindgen_prelude::{Either3, FromNapiValue};
-use scylla::transport::topology::{Column, Keyspace, MaterializedView, Table, UserDefinedType};
+use napi::bindgen_prelude::Either3;
+use scylla::transport::topology::{Keyspace, MaterializedView, Strategy, Table};
 use scylla::transport::ClusterData;
 
 use super::metrics;
@@ -19,22 +19,22 @@ pub struct ScyllaSession {
 }
 
 #[napi]
-pub struct ClusterDataSimplified {
+pub struct ScyllaClusterData {
   inner: Arc<ClusterData>,
 }
 
-impl From<Arc<ClusterData>> for ClusterDataSimplified {
+impl From<Arc<ClusterData>> for ScyllaClusterData {
   fn from(cluster_data: Arc<ClusterData>) -> Self {
-    ClusterDataSimplified {
+    ScyllaClusterData {
       inner: cluster_data,
     }
   }
 }
 
 #[napi]
-impl ClusterDataSimplified {
+impl ScyllaClusterData {
   #[napi]
-  pub fn get_keyspace_info(&self) -> Option<HashMap<String, KeyspaceSimplified>> {
+  pub fn get_keyspace_info(&self) -> Option<HashMap<String, ScyllaKeyspace>> {
     let keyspaces_info = self.inner.get_keyspace_info();
 
     if keyspaces_info.is_empty() {
@@ -43,114 +43,119 @@ impl ClusterDataSimplified {
       Some(
         keyspaces_info
           .into_iter()
-          .map(|(k, v)| (k.clone(), KeyspaceSimplified::from((*v).clone())))
+          .map(|(k, v)| (k.clone(), ScyllaKeyspace::from((*v).clone())))
           .collect(),
       )
     }
   }
 }
 
-impl From<Keyspace> for KeyspaceSimplified {
+impl From<Keyspace> for ScyllaKeyspace {
   fn from(keyspace: Keyspace) -> Self {
-    // filter to have only the table basic
-    let mut keyspace_tables = HashMap::new();
-
-    for (table_name, table_info) in keyspace.tables.iter() {
-      if table_name != "basic" {
-        continue;
-      }
-      keyspace_tables.insert(table_name.clone(), table_info.clone());
-    }
-
-    keyspace_tables.iter().for_each(|(table_name, table_info)| {
-      println!("  Table: {}", table_name);
-      // table_info
-      //   .columns
-      //   .iter()
-      //   .for_each(|(column_name, column_info)| {
-      //     println!("    Column: {}", column_name);
-      //     println!("      Type: {:?}", column_info);
-      //   });
-    });
-
-    KeyspaceSimplified {
-      // strategy: format!("{:?}", keyspace.strategy),
-      tables: keyspace_tables
+    ScyllaKeyspace {
+      tables: keyspace
+        .tables
         .into_iter()
-        .map(|(k, v)| (k, TableSimplified::from(v)))
+        .map(|(k, v)| (k, ScyllaTable::from(v)))
         .collect(),
       views: keyspace
         .views
         .into_iter()
-        .map(|(k, v)| (k, MaterializedViewSimplified::from(v)))
+        .map(|(k, v)| (k, ScyllaMaterializedView::from(v)))
         .collect(),
+      strategy: keyspace.strategy.into(),
       // user_defined_types: keyspace.user_defined_types.into_iter().map(|(k, v)| (k, UserDefinedTypeSimplified::from(v))).collect(),
     }
   }
 }
-
-#[napi]
+#[napi(object)]
 #[derive(Clone)]
-pub struct KeyspaceSimplified {
-  // pub strategy: String,
-  pub tables: HashMap<String, TableSimplified>,
-  pub views: HashMap<String, MaterializedViewSimplified>,
-  // pub user_defined_types: HashMap<String, UserDefinedTypeSimplified>,
+pub struct SimpleStrategy {
+  pub replication_factor: u32,
 }
 
-impl FromNapiValue for MaterializedViewSimplified {
-  unsafe fn from_napi_value(
-    env: napi::sys::napi_env,
-    napi_val: napi::sys::napi_value,
-  ) -> napi::Result<Self> {
-    panic!("Not implemented")
+#[napi(object)]
+#[derive(Clone)]
+pub struct NetworkTopologyStrategy {
+  pub datacenter_repfactors: HashMap<String, i32>,
+}
+
+#[napi(object)]
+#[derive(Clone)]
+pub struct Other {
+  pub name: String,
+  pub data: HashMap<String, String>,
+}
+
+#[napi(object)]
+#[derive(Clone)]
+pub struct ScyllaStrategy {
+  pub kind: String,
+  pub data: Option<Either3<SimpleStrategy, NetworkTopologyStrategy, Other>>,
+}
+
+impl From<Strategy> for ScyllaStrategy {
+  fn from(strategy: Strategy) -> Self {
+    match strategy {
+      Strategy::SimpleStrategy { replication_factor } => ScyllaStrategy {
+        kind: "SimpleStrategy".to_string(),
+        data: Some(Either3::A(SimpleStrategy {
+          replication_factor: replication_factor as u32,
+        })),
+      },
+      Strategy::NetworkTopologyStrategy {
+        datacenter_repfactors,
+      } => ScyllaStrategy {
+        kind: "NetworkTopologyStrategy".to_string(),
+        data: Some(Either3::B(NetworkTopologyStrategy {
+          datacenter_repfactors: datacenter_repfactors
+            .into_iter()
+            .map(|(k, v)| (k, v as i32))
+            .collect(),
+        })),
+      },
+      Strategy::Other { name, data } => ScyllaStrategy {
+        kind: name.clone(),
+        data: Some(Either3::C(Other {
+          name: name.clone(),
+          data,
+        })),
+      },
+      Strategy::LocalStrategy => ScyllaStrategy {
+        kind: "LocalStrategy".to_string(),
+        data: None,
+      },
+    }
   }
 }
 
-// impl From<Keyspace> for KeyspaceSimplified {
-//   fn from(keyspace: Keyspace) -> Self {
-//     KeyspaceSimplified {
-//       // strategy: format!("{:?}", keyspace.strategy),
-//       tables: keyspace
-//         .tables
-//         .into_iter()
-//         .map(|(k, v)| (k, TableSimplified::from(v)))
-//         .collect(),
-//       views: keyspace
-//         .views
-//         .into_iter()
-//         .map(|(k, v)| (k, ViewSimplified::from(v)))
-//         .collect(),
-//       // user_defined_types: keyspace.user_defined_types.into_iter().map(|(k, v)| (k, UserDefinedTypeSimplified::from(v))).collect(),
-//     }
-//   }
-// }
-
-#[napi]
+#[napi(object)]
 #[derive(Clone)]
-pub struct TableSimplified {
+pub struct ScyllaKeyspace {
+  pub strategy: ScyllaStrategy,
+  pub tables: HashMap<String, ScyllaTable>,
+  pub views: HashMap<String, ScyllaMaterializedView>,
+  // pub user_defined_types: HashMap<String, UserDefinedTypeSimplified>,
+}
+
+#[napi(object)]
+#[derive(Clone)]
+pub struct ScyllaTable {
   pub columns: Vec<String>,
   pub partition_key: Vec<String>,
   pub clustering_key: Vec<String>,
   pub partitioner: Option<String>,
 }
 
-impl FromNapiValue for TableSimplified {
-  unsafe fn from_napi_value(
-    env: napi::sys::napi_env,
-    napi_val: napi::sys::napi_value,
-  ) -> napi::Result<Self> {
-    panic!("Not implemented")
-  }
-}
-
-impl From<Table> for TableSimplified {
+impl From<Table> for ScyllaTable {
   fn from(table: Table) -> Self {
-    println!("Table: {:?}", table);
-    println!("Columns: {:?}", table.columns.clone().into_iter().map(|(k, _)| k.clone()).collect::<Vec<String>>());
-    
-    TableSimplified {
-      columns: table.columns.clone().into_iter().map(|(k, _)| (k.clone())).collect::<Vec<String>>(),
+    ScyllaTable {
+      columns: table
+        .columns
+        .clone()
+        .into_iter()
+        .map(|(k, _)| k)
+        .collect::<Vec<String>>(),
       partition_key: table.partition_key.clone(),
       clustering_key: table.clustering_key.clone(),
       partitioner: table.partitioner.clone(),
@@ -158,54 +163,21 @@ impl From<Table> for TableSimplified {
   }
 }
 
-// #[napi]
-// #[derive(Clone)]
-// pub struct ColumnSimplified {
-//   pub type_: String,
-//   pub kind: String,
-// }
-
-// impl From<Column> for ColumnSimplified {
-//   fn from(column: Column) -> Self {
-//     ColumnSimplified {
-//       type_: format!("{:?}", column.type_),
-//       kind: format!("{:?}", column.kind),
-//     }
-//   }
-// }
-
-#[napi]
+#[napi(object)]
 #[derive(Clone)]
-pub struct MaterializedViewSimplified {
-  pub view_metadata: TableSimplified,
+pub struct ScyllaMaterializedView {
+  pub view_metadata: ScyllaTable,
   pub base_table_name: String,
 }
 
-impl From<MaterializedView> for MaterializedViewSimplified {
+impl From<MaterializedView> for ScyllaMaterializedView {
   fn from(view: MaterializedView) -> Self {
-    MaterializedViewSimplified {
-      view_metadata: TableSimplified::from(view.view_metadata),
+    ScyllaMaterializedView {
+      view_metadata: ScyllaTable::from(view.view_metadata),
       base_table_name: view.base_table_name,
     }
   }
 }
-
-// #[napi]
-// pub struct UserDefinedTypeSimplified {
-//     pub name: String,
-//     pub keyspace: String,
-//     // pub field_types: Vec<(String, String)>, // Simplified for the example
-// }
-
-// impl From<Arc<UserDefinedType>> for UserDefinedTypeSimplified {
-//     fn from(udt: Arc<UserDefinedType>) -> Self {
-//         UserDefinedTypeSimplified {
-//             name: udt.name.clone(),
-//             keyspace: udt.keyspace.clone(),
-//             // field_types: udt.field_types.iter().map(|(k, v)| (k.clone(), format!("{:?}", v))).collect(),
-//         }
-//     }
-// }
 
 #[napi]
 impl ScyllaSession {
@@ -219,15 +191,14 @@ impl ScyllaSession {
   }
 
   #[napi]
-  pub async fn get_cluster_data(&self) -> ClusterDataSimplified {
+  pub async fn get_cluster_data(&self) -> ScyllaClusterData {
     self
       .session
       .refresh_metadata()
       .await
       .expect("Failed to refresh metadata");
 
-    let cluster_data: Arc<ClusterData> = self.session.get_cluster_data();
-    // ClusterDataSimplified::from(cluster_data)
+    let cluster_data = self.session.get_cluster_data();
     cluster_data.into()
   }
 

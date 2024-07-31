@@ -59,6 +59,35 @@ export const enum VerifyMode {
   None = 0,
   Peer = 1
 }
+export interface SimpleStrategy {
+  replicationFactor: number
+}
+export interface NetworkTopologyStrategy {
+  datacenterRepfactors: Record<string, number>
+}
+export interface Other {
+  name: string
+  data: Record<string, string>
+}
+export interface ScyllaStrategy {
+  kind: string
+  data?: SimpleStrategy | NetworkTopologyStrategy | Other
+}
+export interface ScyllaKeyspace {
+  strategy: ScyllaStrategy
+  tables: Record<string, ScyllaTable>
+  views: Record<string, ScyllaMaterializedView>
+}
+export interface ScyllaTable {
+  columns: Array<string>
+  partitionKey: Array<string>
+  clusteringKey: Array<string>
+  partitioner?: string
+}
+export interface ScyllaMaterializedView {
+  viewMetadata: ScyllaTable
+  baseTableName: string
+}
 export type ScyllaCluster = Cluster
 export class Cluster {
   /**
@@ -121,7 +150,7 @@ export class Metrics {
 }
 export class ScyllaSession {
   metrics(): Metrics
-  getClusterData(): Promise<ClusterDataSimplified>
+  getClusterData(): Promise<ScyllaClusterData>
   execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
   query(scyllaQuery: Query, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
   prepare(query: string): Promise<PreparedStatement>
@@ -195,22 +224,8 @@ export class ScyllaSession {
   awaitSchemaAgreement(): Promise<Uuid>
   checkSchemaAgreement(): Promise<boolean>
 }
-export class ClusterDataSimplified {
-  getKeyspaceInfo(): Record<string, KeyspaceSimplified> | null
-}
-export class KeyspaceSimplified {
-  tables: Record<string, TableSimplified>
-  views: Record<string, MaterializedViewSimplified>
-}
-export class TableSimplified {
-  columns: Array<string>
-  partitionKey: Array<string>
-  clusteringKey: Array<string>
-  partitioner?: string
-}
-export class MaterializedViewSimplified {
-  viewMetadata: TableSimplified
-  baseTableName: string
+export class ScyllaClusterData {
+  getKeyspaceInfo(): Record<string, ScyllaKeyspace> | null
 }
 export class Uuid {
   /** Generates a random UUID v4. */
