@@ -59,6 +59,15 @@ export const enum VerifyMode {
   None = 0,
   Peer = 1
 }
+export interface ScyllaKeyspace {
+  strategy: ScyllaStrategy
+  tables: Record<string, ScyllaTable>
+  views: Record<string, ScyllaMaterializedView>
+}
+export interface ScyllaStrategy {
+  kind: string
+  data?: SimpleStrategy | NetworkTopologyStrategy | Other
+}
 export interface SimpleStrategy {
   replicationFactor: number
 }
@@ -68,15 +77,6 @@ export interface NetworkTopologyStrategy {
 export interface Other {
   name: string
   data: Record<string, string>
-}
-export interface ScyllaStrategy {
-  kind: string
-  data?: SimpleStrategy | NetworkTopologyStrategy | Other
-}
-export interface ScyllaKeyspace {
-  strategy: ScyllaStrategy
-  tables: Record<string, ScyllaTable>
-  views: Record<string, ScyllaMaterializedView>
 }
 export interface ScyllaTable {
   columns: Array<string>
@@ -262,6 +262,10 @@ export class ScyllaSession {
   checkSchemaAgreement(): Promise<boolean>
 }
 export class ScyllaClusterData {
+  /**
+   * Access keyspaces details collected by the driver Driver collects various schema details like
+   * tables, partitioners, columns, types. They can be read using this method
+   */
   getKeyspaceInfo(): Record<string, ScyllaKeyspace> | null
 }
 export class Uuid {
