@@ -51,4 +51,3 @@ impl From<scylla::statement::Consistency> for Consistency {
     }
   }
 }
-

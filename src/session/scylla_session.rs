@@ -7,6 +7,7 @@ use crate::types::uuid::Uuid;
 use napi::bindgen_prelude::Either3;
 
 use super::metrics;
+use super::topology::ScyllaClusterData;
 
 #[napi]
 pub struct ScyllaSession {
@@ -22,6 +23,18 @@ impl ScyllaSession {
   #[napi]
   pub fn metrics(&self) -> metrics::Metrics {
     metrics::Metrics::new(self.session.get_metrics())
+  }
+
+  #[napi]
+  pub async fn get_cluster_data(&self) -> ScyllaClusterData {
+    self
+      .session
+      .refresh_metadata()
+      .await
+      .expect("Failed to refresh metadata");
+
+    let cluster_data = self.session.get_cluster_data();
+    cluster_data.into()
   }
 
   #[napi]

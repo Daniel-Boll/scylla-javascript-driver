@@ -59,6 +59,35 @@ export const enum VerifyMode {
   None = 0,
   Peer = 1
 }
+export interface ScyllaKeyspace {
+  strategy: ScyllaStrategy
+  tables: Record<string, ScyllaTable>
+  views: Record<string, ScyllaMaterializedView>
+}
+export interface ScyllaStrategy {
+  kind: string
+  data?: SimpleStrategy | NetworkTopologyStrategy | Other
+}
+export interface SimpleStrategy {
+  replicationFactor: number
+}
+export interface NetworkTopologyStrategy {
+  datacenterRepfactors: Record<string, number>
+}
+export interface Other {
+  name: string
+  data: Record<string, string>
+}
+export interface ScyllaTable {
+  columns: Array<string>
+  partitionKey: Array<string>
+  clusteringKey: Array<string>
+  partitioner?: string
+}
+export interface ScyllaMaterializedView {
+  viewMetadata: ScyllaTable
+  baseTableName: string
+}
 export type ScyllaCluster = Cluster
 export class Cluster {
   /**
@@ -121,8 +150,9 @@ export class Metrics {
 }
 export class ScyllaSession {
   metrics(): Metrics
-  execute<T = unknown>(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<T>
-  query<T = unknown>(scyllaQuery: Query, parameters?: Array<number | string | Uuid> | undefined | null): Promise<T>
+  getClusterData(): Promise<ScyllaClusterData>
+  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
+  query(scyllaQuery: Query, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
   prepare(query: string): Promise<PreparedStatement>
   /**
    * Perform a batch query\
@@ -161,7 +191,7 @@ export class ScyllaSession {
    * console.log(await session.execute("SELECT * FROM users"));
    * ```
    */
-  batch<T = unknown>(batch: BatchStatement, parameters: Array<Array<number | string | Uuid> | undefined | null>): Promise<T>
+  batch(batch: BatchStatement, parameters: Array<Array<number | string | Uuid> | undefined | null>): Promise<any>
   /**
    * Sends `USE <keyspace_name>` request on all connections\
    * This allows to write `SELECT * FROM table` instead of `SELECT * FROM keyspace.table`\
@@ -230,6 +260,13 @@ export class ScyllaSession {
    */
   awaitSchemaAgreement(): Promise<Uuid>
   checkSchemaAgreement(): Promise<boolean>
+}
+export class ScyllaClusterData {
+  /**
+   * Access keyspaces details collected by the driver Driver collects various schema details like
+   * tables, partitioners, columns, types. They can be read using this method
+   */
+  getKeyspaceInfo(): Record<string, ScyllaKeyspace> | null
 }
 export class Uuid {
   /** Generates a random UUID v4. */
