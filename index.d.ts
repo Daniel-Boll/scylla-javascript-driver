@@ -52,7 +52,10 @@ export interface Auth {
   password: string
 }
 export interface Ssl {
-  caFilepath: string
+  enabled: boolean
+  caFilepath?: string
+  privateKeyFilepath?: string
+  truststoreFilepath?: string
   verifyMode?: VerifyMode
 }
 export const enum VerifyMode {
@@ -89,7 +92,7 @@ export interface ScyllaMaterializedView {
   baseTableName: string
 }
 export type ScyllaCluster = Cluster
-export class Cluster {
+export declare class Cluster {
   /**
    * Object config is in the format:
    * {
@@ -108,7 +111,7 @@ export type ScyllaBatchStatement = BatchStatement
  * These statements can be simple or prepared.
  * Only INSERT, UPDATE and DELETE statements are allowed.
  */
-export class BatchStatement {
+export declare class BatchStatement {
   constructor()
   /**
    * Appends a statement to the batch.
@@ -118,17 +121,17 @@ export class BatchStatement {
    */
   appendStatement(statement: Query | PreparedStatement): void
 }
-export class PreparedStatement {
+export declare class PreparedStatement {
   setConsistency(consistency: Consistency): void
   setSerialConsistency(serialConsistency: SerialConsistency): void
 }
-export class Query {
+export declare class Query {
   constructor(query: string)
   setConsistency(consistency: Consistency): void
   setSerialConsistency(serialConsistency: SerialConsistency): void
   setPageSize(pageSize: number): void
 }
-export class Metrics {
+export declare class Metrics {
   /** Returns counter for nonpaged queries */
   getQueriesNum(): bigint
   /** Returns counter for pages requested in paged queries */
@@ -148,7 +151,7 @@ export class Metrics {
    */
   getLatencyPercentileMs(percentile: number): bigint
 }
-export class ScyllaSession {
+export declare class ScyllaSession {
   metrics(): Metrics
   getClusterData(): Promise<ScyllaClusterData>
   execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
@@ -261,14 +264,14 @@ export class ScyllaSession {
   awaitSchemaAgreement(): Promise<Uuid>
   checkSchemaAgreement(): Promise<boolean>
 }
-export class ScyllaClusterData {
+export declare class ScyllaClusterData {
   /**
    * Access keyspaces details collected by the driver Driver collects various schema details like
    * tables, partitioners, columns, types. They can be read using this method
    */
   getKeyspaceInfo(): Record<string, ScyllaKeyspace> | null
 }
-export class Uuid {
+export declare class Uuid {
   /** Generates a random UUID v4. */
   static randomV4(): Uuid
   /** Parses a UUID from a string. It may fail if the string is not a valid UUID. */

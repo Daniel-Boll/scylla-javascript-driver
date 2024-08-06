@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use napi::Either;
-use openssl::ssl::SslContextBuilder;
+use openssl::ssl::{SslContextBuilder, SslFiletype};
 
 use crate::{
   cluster::{
@@ -40,8 +40,12 @@ pub struct Auth {
 #[napi(object)]
 #[derive(Clone)]
 pub struct Ssl {
-  pub ca_filepath: String,
+  pub enabled: bool,
+  pub ca_filepath: Option<String>,
+  pub private_key_filepath: Option<String>,
+  pub truststore_filepath: Option<String>,
   pub verify_mode: Option<VerifyMode>,
+  // SSL Filetype: PEM / ASN1
 }
 
 #[napi]
@@ -192,43 +196,66 @@ impl ScyllaCluster {
     }
 
     if let Some(ssl) = ssl? {
-      let ssl_builder = SslContextBuilder::new(openssl::ssl::SslMethod::tls());
+      if ssl.enabled {
+        let ssl_builder = SslContextBuilder::new(openssl::ssl::SslMethod::tls());
 
-      if let Err(err) = ssl_builder {
-        return Err(napi::Error::new(
-          napi::Status::InvalidArg,
-          format!("Failed to create SSL context: {}", err),
-        ));
+        if let Err(err) = ssl_builder {
+          return Err(napi::Error::new(
+            napi::Status::InvalidArg,
+            format!("Failed to create SSL context: {}", err),
+          ));
+        }
+
+        // Safe to unwrap because we checked for Err above
+        let mut ssl_builder = ssl_builder.unwrap();
+
+        if let Some(verify_mode) = ssl.verify_mode {
+          ssl_builder.set_verify(match verify_mode {
+            VerifyMode::None => openssl::ssl::SslVerifyMode::NONE,
+            VerifyMode::Peer => openssl::ssl::SslVerifyMode::PEER,
+          });
+        } else {
+          ssl_builder.set_verify(openssl::ssl::SslVerifyMode::NONE);
+        }
+
+        if let Some(private_key_filepath) = ssl.private_key_filepath {
+          if let Err(err) = ssl_builder.set_private_key_file(private_key_filepath, SslFiletype::PEM)
+          {
+            return Err(napi::Error::new(
+              napi::Status::InvalidArg,
+              format!("Failed to set private key file: {}", err),
+            ));
+          }
+        }
+
+        if let Some(truststore_filepath) = ssl.truststore_filepath {
+          if let Err(err) = ssl_builder.set_certificate_chain_file(truststore_filepath) {
+            return Err(napi::Error::new(
+              napi::Status::InvalidArg,
+              format!("Failed to set truststore file: {}", err),
+            ));
+          }
+        }
+
+        if let Some(ca_filepath) = ssl.ca_filepath {
+          if let Err(err) = ssl_builder.set_ca_file(ca_filepath) {
+            return Err(napi::Error::new(
+              napi::Status::InvalidArg,
+              format!("Failed to set CA file: {}", err),
+            ));
+          }
+        }
+
+        if let Some(auto_await_schema_agreement) = self.auto_await_schema_agreement {
+          builder = builder.auto_await_schema_agreement(auto_await_schema_agreement);
+        }
+
+        if let Some(schema_agreement_interval) = self.schema_agreement_interval {
+          builder = builder.schema_agreement_interval(schema_agreement_interval);
+        }
+
+        builder = builder.ssl_context(Some(ssl_builder.build()));
       }
-
-      // Safe to unwrap because we checked for Err above
-      let mut ssl_builder = ssl_builder.unwrap();
-
-      if let Some(verify_mode) = ssl.verify_mode {
-        ssl_builder.set_verify(match verify_mode {
-          VerifyMode::None => openssl::ssl::SslVerifyMode::NONE,
-          VerifyMode::Peer => openssl::ssl::SslVerifyMode::PEER,
-        });
-      } else {
-        ssl_builder.set_verify(openssl::ssl::SslVerifyMode::NONE);
-      }
-
-      if let Err(err) = ssl_builder.set_ca_file(ssl.ca_filepath) {
-        return Err(napi::Error::new(
-          napi::Status::InvalidArg,
-          format!("Failed to set CA file: {}", err),
-        ));
-      }
-
-      if let Some(auto_await_schema_agreement) = self.auto_await_schema_agreement {
-        builder = builder.auto_await_schema_agreement(auto_await_schema_agreement);
-      }
-
-      if let Some(schema_agreement_interval) = self.schema_agreement_interval {
-        builder = builder.schema_agreement_interval(schema_agreement_interval);
-      }
-
-      builder = builder.ssl_context(Some(ssl_builder.build()));
     }
 
     if let Some(default_execution_profile) = &self.default_execution_profile {
