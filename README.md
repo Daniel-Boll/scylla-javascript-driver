@@ -1,9 +1,9 @@
 <div align="center">
   <a href="https://github.com/daniel-boll/scylla-javascript-driver">
-    <img src="assets/logo.png" alt="scylladb" width="640" />
+    <img src="assets/logo.png" alt="Scylla Nodejs Driver" width="640" />
   </a>
 
-  <h4>🚀 JavaScript driver for ScyllaDB. Pre-release stage. 🧪🔧</h4>
+  <h4>🚀 ScyllaDB NodeJS Driver 🧪🔧</h4>
 </div>
 
 ## ⚠️ Disclaimer ⚠️
