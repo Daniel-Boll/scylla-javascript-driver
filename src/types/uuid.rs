@@ -1,7 +1,7 @@
 use napi::Result;
 
 #[napi()]
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Uuid {
   pub(crate) uuid: uuid::Uuid,
 }
@@ -15,6 +15,12 @@ impl From<uuid::Uuid> for Uuid {
 impl From<Uuid> for uuid::Uuid {
   fn from(uuid: Uuid) -> Self {
     uuid.uuid
+  }
+}
+
+impl Uuid {
+  pub(crate) fn get_inner(&self) -> uuid::Uuid {
+    self.uuid
   }
 }
 

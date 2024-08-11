@@ -92,7 +92,7 @@ export interface ScyllaMaterializedView {
   baseTableName: string
 }
 export type ScyllaCluster = Cluster
-export declare class Cluster {
+export class Cluster {
   /**
    * Object config is in the format:
    * {
@@ -111,7 +111,7 @@ export type ScyllaBatchStatement = BatchStatement
  * These statements can be simple or prepared.
  * Only INSERT, UPDATE and DELETE statements are allowed.
  */
-export declare class BatchStatement {
+export class BatchStatement {
   constructor()
   /**
    * Appends a statement to the batch.
@@ -121,17 +121,17 @@ export declare class BatchStatement {
    */
   appendStatement(statement: Query | PreparedStatement): void
 }
-export declare class PreparedStatement {
+export class PreparedStatement {
   setConsistency(consistency: Consistency): void
   setSerialConsistency(serialConsistency: SerialConsistency): void
 }
-export declare class Query {
+export class Query {
   constructor(query: string)
   setConsistency(consistency: Consistency): void
   setSerialConsistency(serialConsistency: SerialConsistency): void
   setPageSize(pageSize: number): void
 }
-export declare class Metrics {
+export class Metrics {
   /** Returns counter for nonpaged queries */
   getQueriesNum(): bigint
   /** Returns counter for pages requested in paged queries */
@@ -151,11 +151,11 @@ export declare class Metrics {
    */
   getLatencyPercentileMs(percentile: number): bigint
 }
-export declare class ScyllaSession {
+export class ScyllaSession {
   metrics(): Metrics
   getClusterData(): Promise<ScyllaClusterData>
-  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
-  query(scyllaQuery: Query, parameters?: Array<number | string | Uuid> | undefined | null): Promise<any>
+  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null): Promise<any>
+  query(scyllaQuery: Query, parameters?: Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null): Promise<any>
   prepare(query: string): Promise<PreparedStatement>
   /**
    * Perform a batch query\
@@ -194,7 +194,7 @@ export declare class ScyllaSession {
    * console.log(await session.execute("SELECT * FROM users"));
    * ```
    */
-  batch(batch: BatchStatement, parameters: Array<Array<number | string | Uuid> | undefined | null>): Promise<any>
+  batch(batch: BatchStatement, parameters: Array<Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null>): Promise<any>
   /**
    * Sends `USE <keyspace_name>` request on all connections\
    * This allows to write `SELECT * FROM table` instead of `SELECT * FROM keyspace.table`\
@@ -264,14 +264,14 @@ export declare class ScyllaSession {
   awaitSchemaAgreement(): Promise<Uuid>
   checkSchemaAgreement(): Promise<boolean>
 }
-export declare class ScyllaClusterData {
+export class ScyllaClusterData {
   /**
    * Access keyspaces details collected by the driver Driver collects various schema details like
    * tables, partitioners, columns, types. They can be read using this method
    */
   getKeyspaceInfo(): Record<string, ScyllaKeyspace> | null
 }
-export declare class Uuid {
+export class Uuid {
   /** Generates a random UUID v4. */
   static randomV4(): Uuid
   /** Parses a UUID from a string. It may fail if the string is not a valid UUID. */
