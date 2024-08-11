@@ -1,0 +1,20 @@
+[
+  {
+    "label": "Start docker container",
+    "command": "docker run --name scylladb -d --rm -it -p 9042:9042 scylladb/scylla --smp 2",
+    "reveal": "never",
+    "hide": "on_success"
+  },
+  {
+    "label": "Build driver",
+    "command": "yarn build",
+    "hide": "on_success"
+  },
+  {
+    "label": "Run example udt",
+    "command": "yarn tsx ./examples/udt.mts",
+    "reveal": "always",
+    "hide": "never",
+    "shell": "system"
+  }
+]
