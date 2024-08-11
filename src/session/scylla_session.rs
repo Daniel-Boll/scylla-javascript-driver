@@ -1,10 +1,12 @@
+use std::collections::HashMap;
+
 use crate::helpers::query_parameter::QueryParameter;
 use crate::helpers::query_results::QueryResult;
 use crate::query::batch_statement::ScyllaBatchStatement;
 use crate::query::scylla_prepared_statement::PreparedStatement;
 use crate::query::scylla_query::Query;
 use crate::types::uuid::Uuid;
-use napi::bindgen_prelude::Either3;
+use napi::bindgen_prelude::{Either3, Either4};
 
 use super::metrics;
 use super::topology::ScyllaClusterData;
@@ -37,11 +39,14 @@ impl ScyllaSession {
     cluster_data.into()
   }
 
+  #[allow(clippy::type_complexity)]
   #[napi]
   pub async fn execute(
     &self,
     query: Either3<String, &Query, &PreparedStatement>,
-    parameters: Option<Vec<Either3<u32, String, &Uuid>>>,
+    parameters: Option<
+      Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>,
+    >,
   ) -> napi::Result<serde_json::Value> {
     let values = QueryParameter::parser(parameters.clone()).ok_or(napi::Error::new(
       napi::Status::InvalidArg,
@@ -69,11 +74,14 @@ impl ScyllaSession {
     Ok(QueryResult::parser(query_result))
   }
 
+  #[allow(clippy::type_complexity)]
   #[napi]
   pub async fn query(
     &self,
     scylla_query: &Query,
-    parameters: Option<Vec<Either3<u32, String, &Uuid>>>,
+    parameters: Option<
+      Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>,
+    >,
   ) -> napi::Result<serde_json::Value> {
     let values = QueryParameter::parser(parameters.clone()).ok_or(napi::Error::new(
       napi::Status::InvalidArg,
@@ -146,7 +154,9 @@ impl ScyllaSession {
   pub async fn batch(
     &self,
     batch: &ScyllaBatchStatement,
-    parameters: Vec<Option<Vec<Either3<u32, String, &Uuid>>>>,
+    parameters: Vec<
+      Option<Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>>,
+    >,
   ) -> napi::Result<serde_json::Value> {
     let values = parameters
       .iter()

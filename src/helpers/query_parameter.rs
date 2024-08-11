@@ -1,25 +1,89 @@
-use crate::types::uuid::Uuid;
-use napi::bindgen_prelude::Either3;
-use scylla::_macro_internal::SerializedValues;
+use std::collections::HashMap;
 
-pub struct QueryParameter {
-  pub(crate) parameters: Option<Vec<Either3<u32, String, Uuid>>>,
+use crate::types::uuid::Uuid;
+use napi::bindgen_prelude::{Either3, Either4};
+use scylla::{
+  frame::response::result::CqlValue,
+  serialize::{
+    row::{RowSerializationContext, SerializeRow},
+    value::SerializeCql,
+    RowWriter, SerializationError,
+  },
+};
+
+pub struct QueryParameter<'a> {
+  #[allow(clippy::type_complexity)]
+  pub(crate) parameters:
+    Option<Vec<Either4<u32, String, &'a Uuid, HashMap<String, Either3<u32, String, &'a Uuid>>>>>,
 }
 
-impl QueryParameter {
-  pub fn parser(parameters: Option<Vec<Either3<u32, String, &Uuid>>>) -> Option<SerializedValues> {
-    parameters
-      .map(|params| {
-        let mut values = SerializedValues::with_capacity(params.len());
-        for param in params {
-          match param {
-            Either3::A(number) => values.add_value(&(number as i32)).unwrap(),
-            Either3::B(str) => values.add_value(&str).unwrap(),
-            Either3::C(uuid) => values.add_value(&(uuid.uuid)).unwrap(),
+impl<'a> SerializeRow for QueryParameter<'a> {
+  fn serialize(
+    &self,
+    ctx: &RowSerializationContext<'_>,
+    writer: &mut RowWriter,
+  ) -> Result<(), SerializationError> {
+    if let Some(parameters) = &self.parameters {
+      for (i, parameter) in parameters.iter().enumerate() {
+        match parameter {
+          Either4::A(num) => {
+            CqlValue::Int(*num as i32)
+              .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
+          }
+          Either4::B(str) => {
+            CqlValue::Text(str.to_string())
+              .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
+          }
+          Either4::C(uuid) => {
+            CqlValue::Uuid(uuid.get_inner())
+              .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
+          }
+          Either4::D(map) => {
+            CqlValue::UserDefinedType {
+              keyspace: "udt".to_string(),
+              type_name: "address".to_string(),
+              fields: map
+                .iter()
+                .map(|(key, value)| match value {
+                  Either3::A(num) => (key.to_string(), Some(CqlValue::Int(*num as i32))),
+                  Either3::B(str) => (key.to_string(), Some(CqlValue::Text(str.to_string()))),
+                  Either3::C(uuid) => (key.to_string(), Some(CqlValue::Uuid(uuid.get_inner()))),
+                })
+                .collect::<Vec<(String, Option<CqlValue>)>>(),
+            }
+            .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
           }
         }
-        values
-      })
-      .or(Some(SerializedValues::new()))
+      }
+    }
+    Ok(())
+  }
+
+  fn is_empty(&self) -> bool {
+    self.parameters.is_none() || self.parameters.as_ref().unwrap().is_empty()
+  }
+}
+
+impl<'a> QueryParameter<'a> {
+  #[allow(clippy::type_complexity)]
+  pub fn parser(
+    parameters: Option<
+      Vec<Either4<u32, String, &'a Uuid, HashMap<String, Either3<u32, String, &'a Uuid>>>>,
+    >,
+  ) -> Option<Self> {
+    if parameters.is_none() {
+      return Some(QueryParameter { parameters: None });
+    }
+
+    let parameters = parameters.unwrap();
+
+    let mut params = Vec::with_capacity(parameters.len());
+    for parameter in parameters {
+      params.push(parameter);
+    }
+
+    Some(QueryParameter {
+      parameters: Some(params),
+    })
   }
 }
