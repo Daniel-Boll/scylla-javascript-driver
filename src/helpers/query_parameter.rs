@@ -40,8 +40,9 @@ impl<'a> SerializeRow for QueryParameter<'a> {
           }
           Either4::D(map) => {
             CqlValue::UserDefinedType {
-              keyspace: "udt".to_string(),
-              type_name: "address".to_string(),
+              // FIXME: I'm not sure why this is even necessary tho, but if it's and makes sense we'll have to make it so we get the correct info
+              keyspace: "keyspace".to_string(),
+              type_name: "type_name".to_string(),
               fields: map
                 .iter()
                 .map(|(key, value)| match value {
