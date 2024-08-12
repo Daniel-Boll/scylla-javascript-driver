@@ -7,9 +7,15 @@ use crate::query::scylla_prepared_statement::PreparedStatement;
 use crate::query::scylla_query::Query;
 use crate::types::uuid::Uuid;
 use napi::bindgen_prelude::{Either3, Either4};
+use napi::Either;
 
 use super::metrics;
 use super::topology::ScyllaClusterData;
+
+#[napi(object)]
+pub struct QueryOptions {
+  pub prepare: Option<bool>,
+}
 
 #[napi]
 pub struct ScyllaSession {
@@ -39,6 +45,20 @@ impl ScyllaSession {
     cluster_data.into()
   }
 
+  /// Sends a query to the database and receives a response.\
+  /// Returns only a single page of results, to receive multiple pages use (TODO: Not implemented yet)
+  ///
+  /// This is the easiest way to make a query, but performance is worse than that of prepared queries.
+  ///
+  /// It is discouraged to use this method with non-empty values argument. In such case, query first needs to be prepared (on a single connection), so
+  /// driver will perform 2 round trips instead of 1. Please use `PreparedStatement` object or `{ prepared: true }` option instead.
+  ///
+  /// # Notes
+  ///
+  /// ## UDT
+  /// Order of fields in the object must match the order of fields as defined in the UDT. The
+  /// driver does not check it by itself, so incorrect data will be written if the order is
+  /// wrong.
   #[allow(clippy::type_complexity)]
   #[napi]
   pub async fn execute(
@@ -47,27 +67,91 @@ impl ScyllaSession {
     parameters: Option<
       Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>,
     >,
+    options: Option<QueryOptions>,
   ) -> napi::Result<serde_json::Value> {
-    let values = QueryParameter::parser(parameters.clone()).ok_or(napi::Error::new(
-      napi::Status::InvalidArg,
-      format!("Something went wrong with your query parameters. {parameters:?}"),
-    ))?;
-
-    let query_result = match query.clone() {
-      Either3::A(query) => self.session.query(query, values).await,
-      Either3::B(query) => self.session.query(query.query.clone(), values).await,
-      Either3::C(prepared) => self.session.execute(&prepared.prepared, values).await,
-    }
-    .map_err(|e| {
-      let query = match query {
-        Either3::A(query) => query,
-        Either3::B(query) => query.query.contents.clone(),
-        Either3::C(prepared) => prepared.prepared.get_statement().to_string(),
-      };
-
+    let values = QueryParameter::parser(parameters.clone()).ok_or_else(|| {
       napi::Error::new(
         napi::Status::InvalidArg,
-        format!("Something went wrong with your query. - [{query}] - {parameters:?}\n{e}"),
+        format!(
+          "Something went wrong with your query parameters. {:?}",
+          parameters
+        ),
+      )
+    })?;
+
+    let should_prepare = options.map_or(false, |options| options.prepare.unwrap_or(false));
+
+    match query {
+      Either3::A(ref query_str) if should_prepare => {
+        let prepared = self.session.prepare(query_str.clone()).await.map_err(|e| {
+          napi::Error::new(
+            napi::Status::InvalidArg,
+            format!(
+              "Something went wrong preparing your statement. - [{}]\n{}",
+              query_str, e
+            ),
+          )
+        })?;
+        self.execute_prepared(&prepared, values, query_str).await
+      }
+      Either3::A(query_str) => self.execute_query(Either::A(query_str), values).await,
+      Either3::B(query_ref) => {
+        self
+          .execute_query(Either::B(query_ref.query.clone()), values)
+          .await
+      }
+      Either3::C(prepared_ref) => {
+        self
+          .execute_prepared(
+            &prepared_ref.prepared,
+            values,
+            prepared_ref.prepared.get_statement(),
+          )
+          .await
+      }
+    }
+  }
+
+  // Helper method to handle prepared statements
+  async fn execute_prepared(
+    &self,
+    prepared: &scylla::prepared_statement::PreparedStatement,
+    values: QueryParameter<'_>,
+    query: &str,
+  ) -> napi::Result<serde_json::Value> {
+    let query_result = self.session.execute(prepared, values).await.map_err(|e| {
+      napi::Error::new(
+        napi::Status::InvalidArg,
+        format!(
+          "Something went wrong with your prepared statement. - [{}]\n{}",
+          query, e
+        ),
+      )
+    })?;
+    Ok(QueryResult::parser(query_result))
+  }
+
+  // Helper method to handle direct queries
+  async fn execute_query(
+    &self,
+    query: Either<String, scylla::query::Query>,
+    values: QueryParameter<'_>,
+  ) -> napi::Result<serde_json::Value> {
+    let query_result = match &query {
+      Either::A(query_str) => self.session.query(query_str.clone(), values).await,
+      Either::B(query_ref) => self.session.query(query_ref.clone(), values).await,
+    }
+    .map_err(|e| {
+      let query_str = match query {
+        Either::A(query_str) => query_str,
+        Either::B(query_ref) => query_ref.contents.clone(),
+      };
+      napi::Error::new(
+        napi::Status::InvalidArg,
+        format!(
+          "Something went wrong with your query. - [{}]\n{}",
+          query_str, e
+        ),
       )
     })?;
 

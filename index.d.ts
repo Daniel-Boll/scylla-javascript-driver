@@ -62,6 +62,9 @@ export const enum VerifyMode {
   None = 0,
   Peer = 1
 }
+export interface QueryOptions {
+  prepare?: boolean
+}
 export interface ScyllaKeyspace {
   strategy: ScyllaStrategy
   tables: Record<string, ScyllaTable>
@@ -154,7 +157,23 @@ export class Metrics {
 export class ScyllaSession {
   metrics(): Metrics
   getClusterData(): Promise<ScyllaClusterData>
-  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null): Promise<any>
+  /**
+   * Sends a query to the database and receives a response.\
+   * Returns only a single page of results, to receive multiple pages use (TODO: Not implemented yet)
+   *
+   * This is the easiest way to make a query, but performance is worse than that of prepared queries.
+   *
+   * It is discouraged to use this method with non-empty values argument. In such case, query first needs to be prepared (on a single connection), so
+   * driver will perform 2 round trips instead of 1. Please use `PreparedStatement` object or `{ prepared: true }` option instead.
+   *
+   * # Notes
+   *
+   * ## UDT
+   * Order of fields in the object must match the order of fields as defined in the UDT. The
+   * driver does not check it by itself, so incorrect data will be written if the order is
+   * wrong.
+   */
+  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null, options?: QueryOptions | undefined | null): Promise<any>
   query(scyllaQuery: Query, parameters?: Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null): Promise<any>
   prepare(query: string): Promise<PreparedStatement>
   /**
