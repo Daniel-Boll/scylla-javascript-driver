@@ -50,7 +50,30 @@ impl QueryResult {
         ColumnType::UserDefinedType { field_types, .. } => {
           Self::parse_udt(column.as_udt().unwrap(), field_types)
         }
-        _ => "ColumnType currently not implemented".into(),
+        ColumnType::Boolean => serde_json::Value::Bool(column.as_boolean().unwrap()),
+        ColumnType::Inet => serde_json::Value::String(column.as_inet().unwrap().to_string()),
+        ColumnType::Double => serde_json::Value::Number(
+          serde_json::Number::from_f64(column.as_double().unwrap()).unwrap(),
+        ),
+        ColumnType::SmallInt => serde_json::Value::Number(
+          serde_json::Number::from_f64(column.as_smallint().unwrap() as f64).unwrap(),
+        ),
+        ColumnType::TinyInt => serde_json::Value::Number(
+          serde_json::Number::from_f64(column.as_tinyint().unwrap() as f64).unwrap(),
+        ),
+        ColumnType::BigInt => "ColumnType BigInt not supported yet".into(),
+        ColumnType::Decimal => "ColumnType Decimal not supported yet".into(),
+        ColumnType::Duration => "ColumnType Duration not supported yet".into(),
+        ColumnType::Custom(_) => "ColumnType Custom not supported yet".into(),
+        ColumnType::Blob => "ColumnType Blob not supported yet".into(),
+        ColumnType::Counter => "ColumnType Counter not supported yet".into(),
+        ColumnType::List(_) => "ColumnType List not supported yet".into(),
+        ColumnType::Map(_, _) => "ColumnType Map not supported yet".into(),
+        ColumnType::Set(_) => "ColumnType Set not supported yet".into(),
+        ColumnType::Time => "ColumnType Time not supported yet".into(),
+        ColumnType::Timeuuid => "ColumnType Timeuuid not supported yet".into(),
+        ColumnType::Tuple(_) => "ColumnType Tuple not supported yet".into(),
+        ColumnType::Varint => "ColumnType Varint not supported yet".into(),
       },
       None => serde_json::Value::Null,
     }
