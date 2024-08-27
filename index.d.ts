@@ -173,8 +173,8 @@ export class ScyllaSession {
    * driver does not check it by itself, so incorrect data will be written if the order is
    * wrong.
    */
-  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null, options?: QueryOptions | undefined | null): Promise<any>
-  query(scyllaQuery: Query, parameters?: Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null): Promise<any>
+  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null, options?: QueryOptions | undefined | null): Promise<Array<Record<string, string | number | bigint | Uuid>>>
+  query(scyllaQuery: Query, parameters?: Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null): Promise<Array<Record<string, string | number | bigint | Uuid>>>
   prepare(query: string): Promise<PreparedStatement>
   /**
    * Perform a batch query\
@@ -213,7 +213,7 @@ export class ScyllaSession {
    * console.log(await session.execute("SELECT * FROM users"));
    * ```
    */
-  batch(batch: BatchStatement, parameters: Array<Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null>): Promise<any>
+  batch(batch: BatchStatement, parameters: Array<Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null>): Promise<Array<Record<string, string | number | bigint | Uuid>>>
   /**
    * Sends `USE <keyspace_name>` request on all connections\
    * This allows to write `SELECT * FROM table` instead of `SELECT * FROM keyspace.table`\

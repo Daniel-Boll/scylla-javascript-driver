@@ -6,7 +6,7 @@ use crate::query::batch_statement::ScyllaBatchStatement;
 use crate::query::scylla_prepared_statement::PreparedStatement;
 use crate::query::scylla_query::Query;
 use crate::types::uuid::Uuid;
-use napi::bindgen_prelude::{Either3, Either4};
+use napi::bindgen_prelude::{BigInt, Either3, Either4};
 use napi::Either;
 
 use super::metrics;
@@ -68,7 +68,7 @@ impl ScyllaSession {
       Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>,
     >,
     options: Option<QueryOptions>,
-  ) -> napi::Result<serde_json::Value> {
+  ) -> napi::Result<Vec<HashMap<String, Either4<String, i32, BigInt, Uuid>>>> {
     let values = QueryParameter::parser(parameters.clone()).ok_or_else(|| {
       napi::Error::new(
         napi::Status::InvalidArg,
@@ -118,7 +118,7 @@ impl ScyllaSession {
     prepared: &scylla::prepared_statement::PreparedStatement,
     values: QueryParameter<'_>,
     query: &str,
-  ) -> napi::Result<serde_json::Value> {
+  ) -> napi::Result<Vec<HashMap<String, Either4<String, i32, BigInt, Uuid>>>> {
     let query_result = self.session.execute(prepared, values).await.map_err(|e| {
       napi::Error::new(
         napi::Status::InvalidArg,
@@ -136,7 +136,7 @@ impl ScyllaSession {
     &self,
     query: Either<String, scylla::query::Query>,
     values: QueryParameter<'_>,
-  ) -> napi::Result<serde_json::Value> {
+  ) -> napi::Result<Vec<HashMap<String, Either4<String, i32, BigInt, Uuid>>>> {
     let query_result = match &query {
       Either::A(query_str) => self.session.query(query_str.clone(), values).await,
       Either::B(query_ref) => self.session.query(query_ref.clone(), values).await,
@@ -166,7 +166,7 @@ impl ScyllaSession {
     parameters: Option<
       Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>,
     >,
-  ) -> napi::Result<serde_json::Value> {
+  ) -> napi::Result<Vec<HashMap<String, Either4<String, i32, BigInt, Uuid>>>> {
     let values = QueryParameter::parser(parameters.clone()).ok_or(napi::Error::new(
       napi::Status::InvalidArg,
       format!("Something went wrong with your query parameters. {parameters:?}"),
@@ -241,7 +241,7 @@ impl ScyllaSession {
     parameters: Vec<
       Option<Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>>,
     >,
-  ) -> napi::Result<serde_json::Value> {
+  ) -> napi::Result<Vec<HashMap<String, Either4<String, i32, BigInt, Uuid>>>> {
     let values = parameters
       .iter()
       .map(|params| {
