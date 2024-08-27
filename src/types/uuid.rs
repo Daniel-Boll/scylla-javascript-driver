@@ -1,4 +1,5 @@
 use napi::Result;
+use scylla::frame::value::CqlTimeuuid;
 
 #[napi()]
 #[derive(Debug, Clone, Copy)]
@@ -15,6 +16,14 @@ impl From<uuid::Uuid> for Uuid {
 impl From<Uuid> for uuid::Uuid {
   fn from(uuid: Uuid) -> Self {
     uuid.uuid
+  }
+}
+
+impl From<CqlTimeuuid> for Uuid {
+  fn from(uuid: CqlTimeuuid) -> Self {
+    Self {
+      uuid: *uuid.as_ref(), // NOTE: not sure if this is the best way
+    }
   }
 }
 

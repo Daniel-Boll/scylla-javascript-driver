@@ -1,4 +1,4 @@
-import { Cluster } from "../index.js";
+import { Cluster, Uuid } from "../index.js";
 
 const nodes = process.env.CLUSTER_NODES?.split(",") ?? ["127.0.0.1:9042"];
 
@@ -16,4 +16,12 @@ await session.execute(
   "CREATE TABLE IF NOT EXISTS refactor (a text, b int, c uuid, d bigint, primary key (a))",
 );
 
-await session.execute("INSERT INTO basic (a, b, c) VALUES (1, 2, 'abc')");
+await session.execute("INSERT INTO refactor (a, b, c, d) VALUES (?, ?, ?, ?)", [
+  "is a string",
+  42,
+  Uuid.randomV4(),
+  42192219n,
+]);
+
+const results = await session.execute("SELECT * FROM refactor");
+console.log(results);

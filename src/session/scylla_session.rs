@@ -1,13 +1,12 @@
-use std::collections::HashMap;
-
 use crate::helpers::query_parameter::QueryParameter;
-use crate::helpers::query_results::QueryResult;
+use crate::helpers::query_results::{JSQueryResult, QueryResult};
 use crate::query::batch_statement::ScyllaBatchStatement;
 use crate::query::scylla_prepared_statement::PreparedStatement;
 use crate::query::scylla_query::Query;
 use crate::types::uuid::Uuid;
-use napi::bindgen_prelude::{BigInt, Either3, Either4};
+use napi::bindgen_prelude::{BigInt, Either3, Either4, Either5};
 use napi::Either;
+use std::collections::HashMap;
 
 use super::metrics;
 use super::topology::ScyllaClusterData;
@@ -65,10 +64,12 @@ impl ScyllaSession {
     &self,
     query: Either3<String, &Query, &PreparedStatement>,
     parameters: Option<
-      Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>,
+      Vec<
+        Either5<u32, String, &Uuid, BigInt, HashMap<String, Either4<u32, String, &Uuid, BigInt>>>,
+      >,
     >,
     options: Option<QueryOptions>,
-  ) -> napi::Result<Vec<HashMap<String, Either4<String, i32, BigInt, Uuid>>>> {
+  ) -> JSQueryResult {
     let values = QueryParameter::parser(parameters.clone()).ok_or_else(|| {
       napi::Error::new(
         napi::Status::InvalidArg,
@@ -118,7 +119,7 @@ impl ScyllaSession {
     prepared: &scylla::prepared_statement::PreparedStatement,
     values: QueryParameter<'_>,
     query: &str,
-  ) -> napi::Result<Vec<HashMap<String, Either4<String, i32, BigInt, Uuid>>>> {
+  ) -> JSQueryResult {
     let query_result = self.session.execute(prepared, values).await.map_err(|e| {
       napi::Error::new(
         napi::Status::InvalidArg,
@@ -128,7 +129,7 @@ impl ScyllaSession {
         ),
       )
     })?;
-    Ok(QueryResult::parser(query_result))
+    QueryResult::parser(query_result)
   }
 
   // Helper method to handle direct queries
@@ -136,7 +137,7 @@ impl ScyllaSession {
     &self,
     query: Either<String, scylla::query::Query>,
     values: QueryParameter<'_>,
-  ) -> napi::Result<Vec<HashMap<String, Either4<String, i32, BigInt, Uuid>>>> {
+  ) -> JSQueryResult {
     let query_result = match &query {
       Either::A(query_str) => self.session.query(query_str.clone(), values).await,
       Either::B(query_ref) => self.session.query(query_ref.clone(), values).await,
@@ -155,7 +156,7 @@ impl ScyllaSession {
       )
     })?;
 
-    Ok(QueryResult::parser(query_result))
+    QueryResult::parser(query_result)
   }
 
   #[allow(clippy::type_complexity)]
@@ -164,9 +165,11 @@ impl ScyllaSession {
     &self,
     scylla_query: &Query,
     parameters: Option<
-      Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>,
+      Vec<
+        Either5<u32, String, &Uuid, BigInt, HashMap<String, Either4<u32, String, &Uuid, BigInt>>>,
+      >,
     >,
-  ) -> napi::Result<Vec<HashMap<String, Either4<String, i32, BigInt, Uuid>>>> {
+  ) -> JSQueryResult {
     let values = QueryParameter::parser(parameters.clone()).ok_or(napi::Error::new(
       napi::Status::InvalidArg,
       format!("Something went wrong with your query parameters. {parameters:?}"),
@@ -183,7 +186,7 @@ impl ScyllaSession {
         )
       })?;
 
-    Ok(QueryResult::parser(query_result))
+    QueryResult::parser(query_result)
   }
 
   #[napi]
@@ -239,9 +242,13 @@ impl ScyllaSession {
     &self,
     batch: &ScyllaBatchStatement,
     parameters: Vec<
-      Option<Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>>,
+      Option<
+        Vec<
+          Either5<u32, String, &Uuid, BigInt, HashMap<String, Either4<u32, String, &Uuid, BigInt>>>,
+        >,
+      >,
     >,
-  ) -> napi::Result<Vec<HashMap<String, Either4<String, i32, BigInt, Uuid>>>> {
+  ) -> JSQueryResult {
     let values = parameters
       .iter()
       .map(|params| {
@@ -263,7 +270,7 @@ impl ScyllaSession {
         )
       })?;
 
-    Ok(QueryResult::parser(query_result))
+    QueryResult::parser(query_result)
   }
 
   /// Sends `USE <keyspace_name>` request on all connections\
