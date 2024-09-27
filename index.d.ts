@@ -157,6 +157,7 @@ export class Metrics {
 export class ScyllaSession {
   metrics(): Metrics
   getClusterData(): Promise<ScyllaClusterData>
+  executeWithTracing(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null, options?: QueryOptions | undefined | null): Promise<any>
   /**
    * Sends a query to the database and receives a response.\
    * Returns only a single page of results, to receive multiple pages use (TODO: Not implemented yet)
