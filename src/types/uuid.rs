@@ -1,7 +1,7 @@
 use napi::Result;
 use scylla::frame::value::CqlTimeuuid;
 
-#[napi()]
+#[napi]
 #[derive(Debug, Clone, Copy)]
 pub struct Uuid {
   pub(crate) uuid: uuid::Uuid,

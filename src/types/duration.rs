@@ -1,6 +1,6 @@
 use scylla::frame::value::CqlDuration;
 
-#[napi(object)]
+#[napi]
 #[derive(Debug, Clone, Copy)]
 pub struct Duration {
   pub months: i32,

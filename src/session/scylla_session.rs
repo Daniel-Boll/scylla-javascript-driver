@@ -3,8 +3,10 @@ use crate::helpers::query_results::{JSQueryResult, QueryResult};
 use crate::query::batch_statement::ScyllaBatchStatement;
 use crate::query::scylla_prepared_statement::PreparedStatement;
 use crate::query::scylla_query::Query;
+use crate::types::decimal::Decimal;
+use crate::types::duration::Duration;
 use crate::types::uuid::Uuid;
-use napi::bindgen_prelude::{BigInt, Either3, Either4, Either5};
+use napi::bindgen_prelude::{BigInt, Either3, Either6, Either7};
 use napi::Either;
 use std::collections::HashMap;
 
@@ -65,7 +67,15 @@ impl ScyllaSession {
     query: Either3<String, &Query, &PreparedStatement>,
     parameters: Option<
       Vec<
-        Either5<u32, String, &Uuid, BigInt, HashMap<String, Either4<u32, String, &Uuid, BigInt>>>,
+        Either7<
+          u32,
+          String,
+          &Uuid,
+          BigInt,
+          &Duration,
+          &Decimal,
+          HashMap<String, Either6<u32, String, &Uuid, BigInt, &Duration, &Decimal>>,
+        >,
       >,
     >,
     options: Option<QueryOptions>,
@@ -166,7 +176,15 @@ impl ScyllaSession {
     scylla_query: &Query,
     parameters: Option<
       Vec<
-        Either5<u32, String, &Uuid, BigInt, HashMap<String, Either4<u32, String, &Uuid, BigInt>>>,
+        Either7<
+          u32,
+          String,
+          &Uuid,
+          BigInt,
+          &Duration,
+          &Decimal,
+          HashMap<String, Either6<u32, String, &Uuid, BigInt, &Duration, &Decimal>>,
+        >,
       >,
     >,
   ) -> JSQueryResult {
@@ -244,7 +262,15 @@ impl ScyllaSession {
     parameters: Vec<
       Option<
         Vec<
-          Either5<u32, String, &Uuid, BigInt, HashMap<String, Either4<u32, String, &Uuid, BigInt>>>,
+          Either7<
+            u32,
+            String,
+            &Uuid,
+            BigInt,
+            &Duration,
+            &Decimal,
+            HashMap<String, Either6<u32, String, &Uuid, BigInt, &Duration, &Decimal>>,
+          >,
         >,
       >,
     >,

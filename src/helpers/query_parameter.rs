@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use crate::types::uuid::Uuid;
-use napi::bindgen_prelude::{BigInt, Either4, Either5};
+use crate::types::{decimal::Decimal, duration::Duration, uuid::Uuid};
+use napi::bindgen_prelude::{BigInt, Either6, Either7};
 use scylla::{
   frame::response::result::CqlValue,
   serialize::{
@@ -11,19 +11,19 @@ use scylla::{
   },
 };
 
+macro_rules! define_expected_type {
+    ($lifetime:lifetime, $($t:ty),+) => {
+      pub type ParameterNativeTypes<$lifetime> = Either6<$($t),+>;
+      pub type ParameterWithMapType<$lifetime> = Either7<$($t),+, HashMap<String, ParameterNativeTypes<$lifetime>>>;
+      pub type JSQueryParameters<$lifetime> = napi::Result<Vec<HashMap<String, ParameterWithMapType<$lifetime>>>>;
+    };
+}
+
+define_expected_type!('a, u32, String, &'a Uuid, BigInt, &'a Duration, &'a Decimal);
+
 pub struct QueryParameter<'a> {
   #[allow(clippy::type_complexity)]
-  pub(crate) parameters: Option<
-    Vec<
-      Either5<
-        u32,
-        String,
-        &'a Uuid,
-        BigInt,
-        HashMap<String, Either4<u32, String, &'a Uuid, BigInt>>,
-      >,
-    >,
-  >,
+  pub(crate) parameters: Option<Vec<ParameterWithMapType<'a>>>,
 }
 
 impl<'a> SerializeRow for QueryParameter<'a> {
@@ -35,23 +35,25 @@ impl<'a> SerializeRow for QueryParameter<'a> {
     if let Some(parameters) = &self.parameters {
       for (i, parameter) in parameters.iter().enumerate() {
         match parameter {
-          Either5::A(num) => {
+          ParameterWithMapType::A(num) => {
             CqlValue::Int(*num as i32)
               .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
           }
-          Either5::B(str) => {
+          ParameterWithMapType::B(str) => {
             CqlValue::Text(str.to_string())
               .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
           }
-          Either5::C(uuid) => {
+          ParameterWithMapType::C(uuid) => {
             CqlValue::Uuid(uuid.get_inner())
               .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
           }
-          Either5::D(bigint) => {
+          ParameterWithMapType::D(bigint) => {
             CqlValue::BigInt(bigint.get_i64().0)
               .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
           }
-          Either5::E(map) => {
+          ParameterWithMapType::E(_duration) => todo!(),
+          ParameterWithMapType::F(_decimal) => todo!(),
+          ParameterWithMapType::G(map) => {
             CqlValue::UserDefinedType {
               // FIXME: I'm not sure why this is even necessary tho, but if it's and makes sense we'll have to make it so we get the correct info
               keyspace: "keyspace".to_string(),
@@ -59,12 +61,20 @@ impl<'a> SerializeRow for QueryParameter<'a> {
               fields: map
                 .iter()
                 .map(|(key, value)| match value {
-                  Either4::A(num) => (key.to_string(), Some(CqlValue::Int(*num as i32))),
-                  Either4::B(str) => (key.to_string(), Some(CqlValue::Text(str.to_string()))),
-                  Either4::C(uuid) => (key.to_string(), Some(CqlValue::Uuid(uuid.get_inner()))),
-                  Either4::D(bigint) => {
+                  ParameterNativeTypes::A(num) => {
+                    (key.to_string(), Some(CqlValue::Int(*num as i32)))
+                  }
+                  ParameterNativeTypes::B(str) => {
+                    (key.to_string(), Some(CqlValue::Text(str.to_string())))
+                  }
+                  ParameterNativeTypes::C(uuid) => {
+                    (key.to_string(), Some(CqlValue::Uuid(uuid.get_inner())))
+                  }
+                  ParameterNativeTypes::D(bigint) => {
                     (key.to_string(), Some(CqlValue::BigInt(bigint.get_i64().0)))
                   }
+                  ParameterNativeTypes::E(_duration) => todo!(),
+                  ParameterNativeTypes::F(_decimal) => todo!(),
                 })
                 .collect::<Vec<(String, Option<CqlValue>)>>(),
             }
@@ -83,19 +93,7 @@ impl<'a> SerializeRow for QueryParameter<'a> {
 
 impl<'a> QueryParameter<'a> {
   #[allow(clippy::type_complexity)]
-  pub fn parser(
-    parameters: Option<
-      Vec<
-        Either5<
-          u32,
-          String,
-          &'a Uuid,
-          BigInt,
-          HashMap<String, Either4<u32, String, &'a Uuid, BigInt>>,
-        >,
-      >,
-    >,
-  ) -> Option<Self> {
+  pub fn parser(parameters: Option<Vec<ParameterWithMapType<'a>>>) -> Option<Self> {
     if parameters.is_none() {
       return Some(QueryParameter { parameters: None });
     }

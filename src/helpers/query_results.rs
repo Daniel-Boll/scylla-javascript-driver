@@ -16,6 +16,7 @@ macro_rules! define_return_type {
       pub type JSQueryResult = napi::Result<Vec<HashMap<String, WithMapType>>>;
     };
 }
+
 define_return_type!(
   String,
   i64,

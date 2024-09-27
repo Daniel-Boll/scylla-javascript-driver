@@ -13,7 +13,18 @@ await session.execute(
 await session.useKeyspace("refactor");
 
 await session.execute(
-  "CREATE TABLE IF NOT EXISTS refactor (a text, b int, c uuid, d bigint, primary key (a))",
+  `CREATE TABLE IF NOT EXISTS refactor (
+      a int,
+      b float,
+      c boolean,
+      d date,
+      e duration,
+      f decimal,
+      g blob,
+      h varint,
+      i map<text, text>,
+      primary key (a)
+    )`,
 );
 
 await session.execute("INSERT INTO refactor (a, b, c, d) VALUES (?, ?, ?, ?)", [
