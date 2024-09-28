@@ -6,8 +6,11 @@ use crate::query::batch_statement::ScyllaBatchStatement;
 use crate::query::scylla_prepared_statement::PreparedStatement;
 use crate::query::scylla_query::Query;
 use crate::types::uuid::Uuid;
-use napi::bindgen_prelude::{Either3, Either4};
 use napi::Either;
+use napi::bindgen_prelude::{Either3, Either4};
+use serde_json::json;
+
+use scylla::statement::query::Query as ScyllaQuery;
 
 use super::metrics;
 use super::topology::ScyllaClusterData;
@@ -43,6 +46,64 @@ impl ScyllaSession {
 
     let cluster_data = self.session.get_cluster_data();
     cluster_data.into()
+  }
+
+  #[allow(clippy::type_complexity)]
+  #[napi]
+  pub async fn execute_with_tracing(
+    &self,
+    query: Either3<String, &Query, &PreparedStatement>,
+    parameters: Option<
+      Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>,
+    >,
+    options: Option<QueryOptions>,
+  ) -> napi::Result<serde_json::Value> {
+    let values = QueryParameter::parser(parameters.clone()).ok_or_else(|| {
+      napi::Error::new(
+        napi::Status::InvalidArg,
+        format!(
+          "Something went wrong with your query parameters. {:?}",
+          parameters
+        ),
+      )
+    })?;
+
+    let should_prepare = options.map_or(false, |options| options.prepare.unwrap_or(false));
+
+    match query {
+      Either3::A(ref query_str) if should_prepare => {
+        let mut prepared = self.session.prepare(query_str.clone()).await.map_err(|e| {
+          napi::Error::new(
+            napi::Status::InvalidArg,
+            format!(
+              "Something went wrong preparing your statement. - [{}]\n{}",
+              query_str, e
+            ),
+          )
+        })?;
+        prepared.set_tracing(true);
+        self.execute_prepared(&prepared, values, query_str).await
+      }
+      Either3::A(query_str) => {
+        let mut query = ScyllaQuery::new(query_str);
+        query.set_tracing(true);
+        self.execute_query(Either::B(query), values).await
+      }
+      Either3::B(query_ref) => {
+        let mut query = query_ref.query.clone();
+        query.set_tracing(true);
+
+        self.execute_query(Either::B(query), values).await
+      }
+      Either3::C(prepared_ref) => {
+        let mut prepared = prepared_ref.prepared.clone();
+        prepared.set_tracing(true);
+
+        self
+          .execute_prepared(&prepared, values, prepared_ref.prepared.get_statement())
+          .await
+      }
+    }
   }
 
   /// Sends a query to the database and receives a response.\
@@ -110,6 +171,18 @@ impl ScyllaSession {
           .await
       }
     }
+    .map_err(|e| {
+      napi::Error::new(
+        napi::Status::InvalidArg,
+        format!("Something went wrong with your query. - \n{}", e), // TODO: handle different queries here
+      )
+    })?
+    .get("result")
+    .cloned()
+    .ok_or(napi::Error::new(
+      napi::Status::InvalidArg,
+      r#"Something went wrong with your query."#.to_string(), // TODO: handle different queries here
+    ))
   }
 
   // Helper method to handle prepared statements
@@ -128,7 +201,36 @@ impl ScyllaSession {
         ),
       )
     })?;
-    Ok(QueryResult::parser(query_result))
+
+    let tracing = if let Some(tracing_id) = query_result.tracing_id {
+      Some(crate::types::tracing::TracingInfo::from(
+        self
+          .session
+          .get_tracing_info(&tracing_id)
+          .await
+          .map_err(|e| {
+            napi::Error::new(
+              napi::Status::InvalidArg,
+              format!(
+                "Something went wrong with your tracing info. - [{}]\n{}",
+                query, e
+              ),
+            )
+          })?,
+      ))
+    } else {
+      None
+    };
+
+    let result = QueryResult::parser(query_result);
+
+    dbg!(result.clone());
+    dbg!(tracing.clone());
+
+    Ok(json!({
+      "result": result,
+      "tracing": tracing
+    }))
   }
 
   // Helper method to handle direct queries
@@ -142,7 +244,7 @@ impl ScyllaSession {
       Either::B(query_ref) => self.session.query(query_ref.clone(), values).await,
     }
     .map_err(|e| {
-      let query_str = match query {
+      let query_str = match query.clone() {
         Either::A(query_str) => query_str,
         Either::B(query_ref) => query_ref.contents.clone(),
       };
@@ -155,7 +257,34 @@ impl ScyllaSession {
       )
     })?;
 
-    Ok(QueryResult::parser(query_result))
+    let tracing_info = if let Some(tracing_id) = query_result.tracing_id {
+      Some(crate::types::tracing::TracingInfo::from(
+        self
+          .session
+          .get_tracing_info(&tracing_id)
+          .await
+          .map_err(|e| {
+            napi::Error::new(
+              napi::Status::InvalidArg,
+              format!(
+                "Something went wrong with your tracing info. - [{}]\n{}",
+                match query {
+                  Either::A(query_str) => query_str,
+                  Either::B(query_ref) => query_ref.contents.clone(),
+                },
+                e
+              ),
+            )
+          })?,
+      ))
+    } else {
+      None
+    };
+
+    Ok(json!({
+      "result": QueryResult::parser(query_result),
+      "tracing": tracing_info
+    }))
   }
 
   #[allow(clippy::type_complexity)]
