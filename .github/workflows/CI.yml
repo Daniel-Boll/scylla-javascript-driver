@@ -45,11 +45,12 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: macos-latest
-            target: x86_64-apple-darwin
-            build: |
-              yarn build --target x86_64-apple-darwin
-              strip -x *.node
+          # NOTE: https://github.com/Daniel-Boll/scylla-javascript-driver/actions/runs/11087794843/job/30806888759 something went wrong, gotta fix that later
+          # - host: macos-latest
+          #   target: x86_64-apple-darwin
+          #   build: |
+          #     yarn build --target x86_64-apple-darwin
+          #     strip -x *.node
           - host: macos-latest
             target: aarch64-apple-darwin
             build: |
@@ -225,11 +226,11 @@ jobs:
           cache: yarn
       - name: Install dependencies
         run: yarn install
-      - name: Download macOS x64 artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: bindings-x86_64-apple-darwin
-          path: artifacts
+      # - name: Download macOS x64 artifact
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: bindings-x86_64-apple-darwin
+      #     path: artifacts
       - name: Download macOS arm64 artifact
         uses: actions/download-artifact@v3
         with:
