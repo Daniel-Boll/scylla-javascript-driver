@@ -58,7 +58,7 @@ These instructions will get you a copy of the project up and running 🏃 on you
 To install this package, use the following command:
 
 ```bash
-npm install @lambda-group/scylladb
+npm install @lambda-group/scylladb@latest
 ```
 
 ## 📚 Examples 📚
