@@ -20,17 +20,18 @@
     "version": "napi version"
   },
   "napi": {
-    "name": "scylladb",
-    "triples": {
-      "additional": [
-        "aarch64-apple-darwin",
-        "universal-apple-darwin"
-      ]
-    }
+    "binaryName": "scylladb",
+    "targets": [
+      "x86_64-unknown-linux-gnu",
+      "aarch64-apple-darwin",
+      "universal-apple-darwin",
+      "x86_64-apple-darwin",
+      "x86_64-unknown-linux-musl"
+    ]
   },
   "license": "MIT",
   "devDependencies": {
-    "@napi-rs/cli": "^2.18.3",
+    "@napi-rs/cli": "3.0.0-alpha.63",
     "@swc-node/register": "^1.10.0",
     "@swc/core": "^1.6.6",
     "@types/node": "^20.14.9",

@@ -1,12 +1,12 @@
 {
-  "name": "@lambda-group/scylladb-linux-x64-gnu",
+  "name": "@lambda-group/scylladb-linux-x64-musl",
   "version": "0.6.1",
   "cpu": [
     "x64"
   ],
-  "main": "scylladb.linux-x64-gnu.node",
+  "main": "scylladb.linux-x64-musl.node",
   "files": [
-    "scylladb.linux-x64-gnu.node"
+    "scylladb.linux-x64-musl.node"
   ],
   "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
   "author": {
@@ -23,6 +23,6 @@
     "linux"
   ],
   "libc": [
-    "glibc"
+    "musl"
   ]
 }

@@ -3,6 +3,7 @@ env:
   DEBUG: napi:*
   APP_NAME: scylladb
   # MACOSX_DEPLOYMENT_TARGET: "10.13"
+  CARGO_INCREMENTAL: "1"
 permissions:
   contents: write
   id-token: write
@@ -27,7 +28,7 @@ jobs:
       should_publish: ${{ steps.check-commit.outputs.should_publish }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Check commit message for version
         id: check-commit
         run: |
@@ -45,39 +46,59 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          # NOTE: https://github.com/Daniel-Boll/scylla-javascript-driver/actions/runs/11087794843/job/30806888759 something went wrong, gotta fix that later
-          # - host: macos-latest
           #   target: x86_64-apple-darwin
-          #   build: |
-          #     yarn build --target x86_64-apple-darwin
-          #     strip -x *.node
-          # - host: macos-latest
-          #   target: aarch64-apple-darwin
-          #   build: |
-          #     yarn build --target aarch64-apple-darwin
-          #     strip -x *.node
+          #   build: pnpm build --target x86_64-apple-darwin
           # - host: windows-latest
-          #   build: yarn build
+          #   build: pnpm build --target x86_64-pc-windows-msvc
           #   target: x86_64-pc-windows-msvc
+          # - host: windows-latest
+          #   build: pnpm build --target i686-pc-windows-msvc
+          #   target: i686-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
-            build: |-
-              set -e &&
-              yarn build --target x86_64-unknown-linux-gnu &&
-              strip *.node
-    name: stable - ${{ matrix.settings.target }} - node@18
+            build: pnpm build --target x86_64-unknown-linux-gnu --use-napi-cross
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            build: pnpm build --target x86_64-unknown-linux-musl -x
+
+          # NOTE: https://github.com/Daniel-Boll/scylla-javascript-driver/actions/runs/11087794843/job/30806888759 something went wrong, gotta fix that later
+          # - host: macos-latest
+          #   target: aarch64-apple-darwin
+          #   build: pnpm build --target aarch64-apple-darwin
+
+          # - host: ubuntu-latest
+          #   target: aarch64-unknown-linux-gnu
+          #   build: pnpm build --target aarch64-unknown-linux-gnu --use-napi-cross
+          # - host: ubuntu-latest
+          #   target: armv7-unknown-linux-gnueabihf
+          #   build: pnpm build --target armv7-unknown-linux-gnueabihf --use-napi-cross
+          # - host: ubuntu-latest
+          #   target: aarch64-linux-android
+          #   build: pnpm build --target aarch64-linux-android
+          # - host: ubuntu-latest
+          #   target: armv7-linux-androideabi
+          #   build: pnpm build --target armv7-linux-androideabi
+          # - host: ubuntu-latest
+          #   target: aarch64-unknown-linux-musl
+          #   build: pnpm build --target aarch64-unknown-linux-musl -x
+          # - host: windows-latest
+          #   target: aarch64-pc-windows-msvc
+          #   build: pnpm build --target aarch64-pc-windows-msvc
+          # - host: ubuntu-latest
+          #   target: wasm32-wasip1-threads
+          #   build: pnpm build --target wasm32-wasip1-threads
+    name: stable - ${{ matrix.settings.target }} - node@20
     runs-on: ${{ matrix.settings.host }}
     outputs:
       OPENSSL_DIR: ${{ steps.install_openssl.outputs.OPENSSL_DIR }}
       OPENSSL_STATIC: ${{ steps.install_openssl.outputs.OPENSSL_STATIC }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         if: ${{ !matrix.settings.docker }}
         with:
-          node-version: 18
+          node-version: 20
           check-latest: true
           cache: yarn
       - name: Install
@@ -87,19 +108,27 @@ jobs:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
+            ~/.napi-rs
             .cargo-cache
             target/
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
       - uses: goto-bus-stop/setup-zig@v2
-        if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' }}
+        if: ${{ contains(matrix.settings.target, 'musl') }}
         with:
-          version: 0.10.1
+          version: 0.13.0
+      - name: Install cargo-zigbuild
+        uses: taiki-e/install-action@v2
+        if: ${{ contains(matrix.settings.target, 'musl') }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tool: cargo-zigbuild
       - name: Setup toolchain
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
@@ -111,10 +140,10 @@ jobs:
       - name: Install dependencies
         run: yarn install
       - name: Setup node x86
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         if: matrix.settings.target == 'i686-pc-windows-msvc'
         with:
-          node-version: 18
+          node-version: 20
           check-latest: true
           cache: yarn
           architecture: x86
@@ -254,9 +283,9 @@ jobs:
       # - test-linux-x64-gnu-binding
       - build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           check-latest: true
@@ -264,7 +293,7 @@ jobs:
       - name: Install dependencies
         run: yarn install
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
       - name: Move artifacts
