@@ -28,7 +28,7 @@ jobs:
       should_publish: ${{ steps.check-commit.outputs.should_publish }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Check commit message for version
         id: check-commit
         run: |
