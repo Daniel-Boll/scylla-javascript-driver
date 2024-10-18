@@ -21,6 +21,9 @@ permissions:
       - docs/**
   workflow_dispatch:
   pull_request: null
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   check-version-in-commit:
     runs-on: ubuntu-latest
@@ -132,10 +135,6 @@ jobs:
       - name: Setup toolchain
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
-        shell: bash
-      - name: Setup node x86
-        if: matrix.settings.target == 'i686-pc-windows-msvc'
-        run: yarn config set supportedArchitectures.cpu "ia32"
         shell: bash
       - name: Install dependencies
         run: yarn install
