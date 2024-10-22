@@ -6,19 +6,19 @@
 export const enum Compression {
   None = 0,
   Lz4 = 1,
-  Snappy = 2,
+  Snappy = 2
 }
 export interface ClusterConfig {
-  nodes: Array<string>;
-  compression?: Compression;
-  defaultExecutionProfile?: ExecutionProfile;
-  keyspace?: string;
-  auth?: Auth;
-  ssl?: Ssl;
+  nodes: Array<string>
+  compression?: Compression
+  defaultExecutionProfile?: ExecutionProfile
+  keyspace?: string
+  auth?: Auth
+  ssl?: Ssl
   /** The driver automatically awaits schema agreement after a schema-altering query is executed. Waiting for schema agreement more than necessary is never a bug, but might slow down applications which do a lot of schema changes (e.g. a migration). For instance, in case where somebody wishes to create a keyspace and then a lot of tables in it, it makes sense only to wait after creating a keyspace and after creating all the tables rather than after every query. */
-  autoAwaitSchemaAgreement?: boolean;
+  autoAwaitSchemaAgreement?: boolean
   /** If the schema is not agreed upon, the driver sleeps for a duration in seconds before checking it again. The default value is 0.2 (200 milliseconds) */
-  schemaAgreementInterval?: number;
+  schemaAgreementInterval?: number
 }
 export const enum Consistency {
   Any = 0,
@@ -31,75 +31,70 @@ export const enum Consistency {
   EachQuorum = 7,
   LocalOne = 10,
   Serial = 8,
-  LocalSerial = 9,
+  LocalSerial = 9
 }
 export const enum SerialConsistency {
   Serial = 8,
-  LocalSerial = 9,
+  LocalSerial = 9
 }
 export interface ExecutionProfile {
-  consistency?: Consistency;
-  serialConsistency?: SerialConsistency;
-  requestTimeout?: number;
+  consistency?: Consistency
+  serialConsistency?: SerialConsistency
+  requestTimeout?: number
 }
 export interface ConnectionOptions {
-  keyspace?: string;
-  auth?: Auth;
-  ssl?: Ssl;
+  keyspace?: string
+  auth?: Auth
+  ssl?: Ssl
 }
 export interface Auth {
-  username: string;
-  password: string;
+  username: string
+  password: string
 }
 export interface Ssl {
-  enabled: boolean;
-  caFilepath?: string;
-  privateKeyFilepath?: string;
-  truststoreFilepath?: string;
-  verifyMode?: VerifyMode;
+  enabled: boolean
+  caFilepath?: string
+  privateKeyFilepath?: string
+  truststoreFilepath?: string
+  verifyMode?: VerifyMode
 }
 export const enum VerifyMode {
   None = 0,
-  Peer = 1,
+  Peer = 1
 }
 export interface QueryOptions {
-  prepare?: boolean;
+  prepare?: boolean
 }
 export interface ScyllaKeyspace {
-  strategy: ScyllaStrategy;
-  tables: Record<string, ScyllaTable>;
-  views: Record<string, ScyllaMaterializedView>;
+  strategy: ScyllaStrategy
+  tables: Record<string, ScyllaTable>
+  views: Record<string, ScyllaMaterializedView>
 }
 export interface ScyllaStrategy {
-  kind: string;
-  data?: SimpleStrategy | NetworkTopologyStrategy | Other;
+  kind: string
+  data?: SimpleStrategy | NetworkTopologyStrategy | Other
 }
 export interface SimpleStrategy {
-  replicationFactor: number;
+  replicationFactor: number
 }
 export interface NetworkTopologyStrategy {
-  datacenterRepfactors: Record<string, number>;
+  datacenterRepfactors: Record<string, number>
 }
 export interface Other {
-  name: string;
-  data: Record<string, string>;
+  name: string
+  data: Record<string, string>
 }
 export interface ScyllaTable {
-  columns: Array<string>;
-  partitionKey: Array<string>;
-  clusteringKey: Array<string>;
-  partitioner?: string;
+  columns: Array<string>
+  partitionKey: Array<string>
+  clusteringKey: Array<string>
+  partitioner?: string
 }
 export interface ScyllaMaterializedView {
-  viewMetadata: ScyllaTable;
-  baseTableName: string;
+  viewMetadata: ScyllaTable
+  baseTableName: string
 }
-export interface Duration {
-  months: number;
-  days: number;
-  nanoseconds: number;
-}
-export type ScyllaCluster = Cluster;
+export type ScyllaCluster = Cluster
 export class Cluster {
   /**
    * Object config is in the format:
@@ -107,14 +102,11 @@ export class Cluster {
    *     nodes: Array<string>,
    * }
    */
-  constructor(clusterConfig: ClusterConfig);
+  constructor(clusterConfig: ClusterConfig)
   /** Connect to the cluster */
-  connect(
-    keyspaceOrOptions?: string | ConnectionOptions | undefined | null,
-    options?: ConnectionOptions | undefined | null,
-  ): Promise<ScyllaSession>;
+  connect(keyspaceOrOptions?: string | ConnectionOptions | undefined | null, options?: ConnectionOptions | undefined | null): Promise<ScyllaSession>
 }
-export type ScyllaBatchStatement = BatchStatement;
+export type ScyllaBatchStatement = BatchStatement
 /**
  * Batch statements
  *
@@ -123,36 +115,36 @@ export type ScyllaBatchStatement = BatchStatement;
  * Only INSERT, UPDATE and DELETE statements are allowed.
  */
 export class BatchStatement {
-  constructor();
+  constructor()
   /**
    * Appends a statement to the batch.
    *
    * _Warning_
    * Using simple statements with bind markers in batches is strongly discouraged. For each simple statement with a non-empty list of values in the batch, the driver will send a prepare request, and it will be done sequentially. Results of preparation are not cached between `session.batch` calls. Consider preparing the statements before putting them into the batch.
    */
-  appendStatement(statement: Query | PreparedStatement): void;
+  appendStatement(statement: Query | PreparedStatement): void
 }
 export class PreparedStatement {
-  setConsistency(consistency: Consistency): void;
-  setSerialConsistency(serialConsistency: SerialConsistency): void;
+  setConsistency(consistency: Consistency): void
+  setSerialConsistency(serialConsistency: SerialConsistency): void
 }
 export class Query {
-  constructor(query: string);
-  setConsistency(consistency: Consistency): void;
-  setSerialConsistency(serialConsistency: SerialConsistency): void;
-  setPageSize(pageSize: number): void;
+  constructor(query: string)
+  setConsistency(consistency: Consistency): void
+  setSerialConsistency(serialConsistency: SerialConsistency): void
+  setPageSize(pageSize: number): void
 }
 export class Metrics {
   /** Returns counter for nonpaged queries */
-  getQueriesNum(): bigint;
+  getQueriesNum(): bigint
   /** Returns counter for pages requested in paged queries */
-  getQueriesIterNum(): bigint;
+  getQueriesIterNum(): bigint
   /** Returns counter for errors occurred in nonpaged queries */
-  getErrorsNum(): bigint;
+  getErrorsNum(): bigint
   /** Returns counter for errors occurred in paged queries */
-  getErrorsIterNum(): bigint;
+  getErrorsIterNum(): bigint
   /** Returns average latency in milliseconds */
-  getLatencyAvgMs(): bigint;
+  getLatencyAvgMs(): bigint
   /**
    * Returns latency from histogram for a given percentile
    *
@@ -160,12 +152,11 @@ export class Metrics {
    *
    * * `percentile` - float value (0.0 - 100.0), value will be clamped to this range
    */
-  getLatencyPercentileMs(percentile: number): bigint;
+  getLatencyPercentileMs(percentile: number): bigint
 }
-type JSQueryResult = any;
 export class ScyllaSession {
-  metrics(): Metrics;
-  getClusterData(): Promise<ScyllaClusterData>;
+  metrics(): Metrics
+  getClusterData(): Promise<ScyllaClusterData>
   /**
    * Sends a query to the database and receives a response.\
    * Returns only a single page of results, to receive multiple pages use (TODO: Not implemented yet)
@@ -182,34 +173,9 @@ export class ScyllaSession {
    * driver does not check it by itself, so incorrect data will be written if the order is
    * wrong.
    */
-  execute(
-    query: string | Query | PreparedStatement,
-    parameters?:
-      | Array<
-          | number
-          | string
-          | Uuid
-          | bigint
-          | Record<string, number | string | Uuid | bigint>
-        >
-      | undefined
-      | null,
-    options?: QueryOptions | undefined | null,
-  ): Promise<JSQueryResult>;
-  query(
-    scyllaQuery: Query,
-    parameters?:
-      | Array<
-          | number
-          | string
-          | Uuid
-          | bigint
-          | Record<string, number | string | Uuid | bigint>
-        >
-      | undefined
-      | null,
-  ): Promise<JSQueryResult>;
-  prepare(query: string): Promise<PreparedStatement>;
+  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number> | Record<string, number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number>>> | undefined | null, options?: QueryOptions | undefined | null): Promise<JSQueryResult>
+  query(scyllaQuery: Query, parameters?: Array<number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number> | Record<string, number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number>>> | undefined | null): Promise<JSQueryResult>
+  prepare(query: string): Promise<PreparedStatement>
   /**
    * Perform a batch query\
    * Batch contains many `simple` or `prepared` queries which are executed at once\
@@ -247,20 +213,7 @@ export class ScyllaSession {
    * console.log(await session.execute("SELECT * FROM users"));
    * ```
    */
-  batch(
-    batch: BatchStatement,
-    parameters: Array<
-      | Array<
-          | number
-          | string
-          | Uuid
-          | bigint
-          | Record<string, number | string | Uuid | bigint>
-        >
-      | undefined
-      | null
-    >,
-  ): Promise<JSQueryResult>;
+  batch(batch: BatchStatement, parameters: Array<Array<number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number> | Record<string, number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number>>> | undefined | null>): Promise<JSQueryResult>
   /**
    * Sends `USE <keyspace_name>` request on all connections\
    * This allows to write `SELECT * FROM table` instead of `SELECT * FROM keyspace.table`\
@@ -300,10 +253,7 @@ export class ScyllaSession {
    *   .catch(console.error);
    * ```
    */
-  useKeyspace(
-    keyspaceName: string,
-    caseSensitive?: boolean | undefined | null,
-  ): Promise<void>;
+  useKeyspace(keyspaceName: string, caseSensitive?: boolean | undefined | null): Promise<void>
   /**
    * session.awaitSchemaAgreement returns a Promise that can be awaited as long as schema is not in an agreement.
    * However, it won’t wait forever; ClusterConfig defines a timeout that limits the time of waiting. If the timeout elapses,
@@ -330,22 +280,38 @@ export class ScyllaSession {
    * console.log(isAgreed);
    * ```
    */
-  awaitSchemaAgreement(): Promise<Uuid>;
-  checkSchemaAgreement(): Promise<boolean>;
+  awaitSchemaAgreement(): Promise<Uuid>
+  checkSchemaAgreement(): Promise<boolean>
 }
 export class ScyllaClusterData {
   /**
    * Access keyspaces details collected by the driver Driver collects various schema details like
    * tables, partitioners, columns, types. They can be read using this method
    */
-  getKeyspaceInfo(): Record<string, ScyllaKeyspace> | null;
+  getKeyspaceInfo(): Record<string, ScyllaKeyspace> | null
 }
-export class Decimal {}
+export class Decimal {
+  constructor(intVal: Array<number>, scale: number)
+  /** Returns the string representation of the Decimal. */
+  toString(): string
+}
+export class Duration {
+  months: number
+  days: number
+  nanoseconds: number
+  constructor(months: number, days: number, nanoseconds: number)
+  /** Returns the string representation of the Duration. */
+  toString(): string
+}
 export class Uuid {
   /** Generates a random UUID v4. */
-  static randomV4(): Uuid;
+  static randomV4(): Uuid
   /** Parses a UUID from a string. It may fail if the string is not a valid UUID. */
-  static fromString(str: string): Uuid;
+  static fromString(str: string): Uuid
   /** Returns the string representation of the UUID. */
-  toString(): string;
+  toString(): string
 }
+
+type NativeTypes = number | string | Uuid | bigint | Duration | Decimal;
+type WithMapType = NativeTypes | Record<string, NativeTypes>;
+type JSQueryResultType = Record<string, WithMapType>[];

@@ -27,3 +27,26 @@ impl From<Duration> for CqlDuration {
     }
   }
 }
+
+#[napi]
+impl Duration {
+  #[napi(constructor)]
+  pub fn new(months: i32, days: i32, nanoseconds: i64) -> Self {
+    Self {
+      months,
+      days,
+      nanoseconds,
+    }
+  }
+
+  /// Returns the string representation of the Duration.
+  // TODO: Check really how this is supposed to be displayed
+  #[napi]
+  #[allow(clippy::inherent_to_string)]
+  pub fn to_string(&self) -> String {
+    format!(
+      "{} months, {} days, {} nanoseconds",
+      self.months, self.days, self.nanoseconds
+    )
+  }
+}

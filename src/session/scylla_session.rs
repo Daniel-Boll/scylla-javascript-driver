@@ -6,8 +6,8 @@ use crate::query::scylla_query::Query;
 use crate::types::decimal::Decimal;
 use crate::types::duration::Duration;
 use crate::types::uuid::Uuid;
-use napi::bindgen_prelude::{BigInt, Either3, Either6, Either7};
 use napi::Either;
+use napi::bindgen_prelude::{BigInt, Either3, Either8, Either9};
 use std::collections::HashMap;
 
 use super::metrics;
@@ -67,14 +67,16 @@ impl ScyllaSession {
     query: Either3<String, &Query, &PreparedStatement>,
     parameters: Option<
       Vec<
-        Either7<
+        Either9<
           u32,
           String,
           &Uuid,
           BigInt,
           &Duration,
           &Decimal,
-          HashMap<String, Either6<u32, String, &Uuid, BigInt, &Duration, &Decimal>>,
+          bool,
+          Vec<u32>,
+          HashMap<String, Either8<u32, String, &Uuid, BigInt, &Duration, &Decimal, bool, Vec<u32>>>,
         >,
       >,
     >,
@@ -176,14 +178,16 @@ impl ScyllaSession {
     scylla_query: &Query,
     parameters: Option<
       Vec<
-        Either7<
+        Either9<
           u32,
           String,
           &Uuid,
           BigInt,
           &Duration,
           &Decimal,
-          HashMap<String, Either6<u32, String, &Uuid, BigInt, &Duration, &Decimal>>,
+          bool,
+          Vec<u32>,
+          HashMap<String, Either8<u32, String, &Uuid, BigInt, &Duration, &Decimal, bool, Vec<u32>>>,
         >,
       >,
     >,
@@ -200,7 +204,8 @@ impl ScyllaSession {
       .map_err(|e| {
         napi::Error::new(
           napi::Status::InvalidArg,
-          format!("Something went wrong with your query. - [{scylla_query}] - {parameters:?}\n{e}"),
+          // format!("Something went wrong with your query. - [{scylla_query}] - {parameters:?}\n{e}"),
+          format!("Something went wrong with your query. - [{scylla_query}] - TMP\n{e}"),
         )
       })?;
 
@@ -262,14 +267,19 @@ impl ScyllaSession {
     parameters: Vec<
       Option<
         Vec<
-          Either7<
+          Either9<
             u32,
             String,
             &Uuid,
             BigInt,
             &Duration,
             &Decimal,
-            HashMap<String, Either6<u32, String, &Uuid, BigInt, &Duration, &Decimal>>,
+            bool,
+            Vec<u32>,
+            HashMap<
+              String,
+              Either8<u32, String, &Uuid, BigInt, &Duration, &Decimal, bool, Vec<u32>>,
+            >,
           >,
         >,
       >,

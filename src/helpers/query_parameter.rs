@@ -1,25 +1,25 @@
 use std::collections::HashMap;
 
 use crate::types::{decimal::Decimal, duration::Duration, uuid::Uuid};
-use napi::bindgen_prelude::{BigInt, Either6, Either7};
+use napi::bindgen_prelude::{BigInt, Either8, Either9};
 use scylla::{
   frame::response::result::CqlValue,
   serialize::{
+    RowWriter, SerializationError,
     row::{RowSerializationContext, SerializeRow},
     value::SerializeCql,
-    RowWriter, SerializationError,
   },
 };
 
 macro_rules! define_expected_type {
     ($lifetime:lifetime, $($t:ty),+) => {
-      pub type ParameterNativeTypes<$lifetime> = Either6<$($t),+>;
-      pub type ParameterWithMapType<$lifetime> = Either7<$($t),+, HashMap<String, ParameterNativeTypes<$lifetime>>>;
+      pub type ParameterNativeTypes<$lifetime> = Either8<$($t),+>;
+      pub type ParameterWithMapType<$lifetime> = Either9<$($t),+, HashMap<String, ParameterNativeTypes<$lifetime>>>;
       pub type JSQueryParameters<$lifetime> = napi::Result<Vec<HashMap<String, ParameterWithMapType<$lifetime>>>>;
     };
 }
 
-define_expected_type!('a, u32, String, &'a Uuid, BigInt, &'a Duration, &'a Decimal);
+define_expected_type!('a, u32, String, &'a Uuid, BigInt, &'a Duration, &'a Decimal, bool, Vec<u32>);
 
 pub struct QueryParameter<'a> {
   #[allow(clippy::type_complexity)]
@@ -51,9 +51,22 @@ impl<'a> SerializeRow for QueryParameter<'a> {
             CqlValue::BigInt(bigint.get_i64().0)
               .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
           }
-          ParameterWithMapType::E(_duration) => todo!(),
-          ParameterWithMapType::F(_decimal) => todo!(),
-          ParameterWithMapType::G(map) => {
+          ParameterWithMapType::E(duration) => {
+            CqlValue::Duration((**duration).into())
+              .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
+          }
+          ParameterWithMapType::F(decimal) => {
+            CqlValue::Decimal((*decimal).into())
+              .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
+          }
+          ParameterWithMapType::G(bool) => {
+            CqlValue::Boolean(*bool).serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
+          }
+          ParameterWithMapType::H(buffer) => {
+            CqlValue::Blob(u32_vec_to_u8_vec(buffer))
+              .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
+          }
+          ParameterWithMapType::I(map) => {
             CqlValue::UserDefinedType {
               // FIXME: I'm not sure why this is even necessary tho, but if it's and makes sense we'll have to make it so we get the correct info
               keyspace: "keyspace".to_string(),
@@ -73,8 +86,20 @@ impl<'a> SerializeRow for QueryParameter<'a> {
                   ParameterNativeTypes::D(bigint) => {
                     (key.to_string(), Some(CqlValue::BigInt(bigint.get_i64().0)))
                   }
-                  ParameterNativeTypes::E(_duration) => todo!(),
-                  ParameterNativeTypes::F(_decimal) => todo!(),
+                  ParameterNativeTypes::E(duration) => (
+                    key.to_string(),
+                    Some(CqlValue::Duration((**duration).into())),
+                  ),
+                  ParameterNativeTypes::F(decimal) => {
+                    (key.to_string(), Some(CqlValue::Decimal((*decimal).into())))
+                  }
+                  ParameterNativeTypes::G(bool) => {
+                    (key.to_string(), Some(CqlValue::Boolean(*bool)))
+                  }
+                  ParameterNativeTypes::H(buffer) => (
+                    key.to_string(),
+                    Some(CqlValue::Blob(u32_vec_to_u8_vec(buffer))),
+                  ),
                 })
                 .collect::<Vec<(String, Option<CqlValue>)>>(),
             }
@@ -109,4 +134,8 @@ impl<'a> QueryParameter<'a> {
       parameters: Some(params),
     })
   }
+}
+
+fn u32_vec_to_u8_vec(input: &[u32]) -> Vec<u8> {
+  input.iter().map(|&num| num as u8).collect()
 }

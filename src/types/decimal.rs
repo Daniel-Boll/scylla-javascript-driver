@@ -1,12 +1,11 @@
 use std::fmt::Debug;
 
-use napi::bindgen_prelude::Uint8Array;
 use scylla::frame::value::CqlDecimal;
 
 #[napi]
 #[derive(Clone)]
 pub struct Decimal {
-  int_val: Uint8Array,
+  int_val: Vec<u8>,
   scale: i32,
 }
 
@@ -21,8 +20,8 @@ impl From<CqlDecimal> for Decimal {
   }
 }
 
-impl From<Decimal> for CqlDecimal {
-  fn from(value: Decimal) -> Self {
+impl From<&Decimal> for CqlDecimal {
+  fn from(value: &Decimal) -> Self {
     CqlDecimal::from_signed_be_bytes_slice_and_exponent(value.int_val.as_ref(), value.scale)
   }
 }
@@ -30,10 +29,31 @@ impl From<Decimal> for CqlDecimal {
 impl Debug for Decimal {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     f.debug_struct("Decimal")
-      .field("int_val", &self.int_val.into_iter().collect::<Vec<_>>())
+      .field("int_val", &self.int_val)
       .field("scale", &self.scale)
       .finish()
   }
 }
 
 // TODO: implement operations for this wrapper
+#[napi]
+impl Decimal {
+  #[napi(constructor)]
+  pub fn new(int_val: Vec<u8>, scale: i32) -> Self {
+    Self { int_val, scale }
+  }
+
+  /// Returns the string representation of the Decimal.
+  // TODO: Check really how this is supposed to be displayed
+  #[napi]
+  #[allow(clippy::inherent_to_string)]
+  pub fn to_string(&self) -> String {
+    let mut result = String::new();
+    for b in &self.int_val {
+      result.push_str(&format!("{:02x}", b));
+    }
+    result.push('e');
+    result.push_str(&self.scale.to_string());
+    result
+  }
+}
