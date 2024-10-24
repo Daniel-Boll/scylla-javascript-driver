@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
-use crate::types::{decimal::Decimal, duration::Duration, uuid::Uuid};
-use napi::bindgen_prelude::{BigInt, Either8, Either9};
+use crate::types::{
+  decimal::Decimal, duration::Duration, float::Float, uuid::Uuid, varint::Varint,
+};
+use napi::bindgen_prelude::{BigInt, Either10, Either11};
 use scylla::{
   frame::response::result::CqlValue,
   serialize::{
@@ -13,14 +15,15 @@ use scylla::{
 
 macro_rules! define_expected_type {
     ($lifetime:lifetime, $($t:ty),+) => {
-      pub type ParameterNativeTypes<$lifetime> = Either8<$($t),+>;
-      pub type ParameterWithMapType<$lifetime> = Either9<$($t),+, HashMap<String, ParameterNativeTypes<$lifetime>>>;
+      pub type ParameterNativeTypes<$lifetime> = Either10<$($t),+>;
+      pub type ParameterWithMapType<$lifetime> = Either11<$($t),+, HashMap<String, ParameterNativeTypes<$lifetime>>>;
       pub type JSQueryParameters<$lifetime> = napi::Result<Vec<HashMap<String, ParameterWithMapType<$lifetime>>>>;
     };
 }
 
-define_expected_type!('a, u32, String, &'a Uuid, BigInt, &'a Duration, &'a Decimal, bool, Vec<u32>);
+define_expected_type!('a, u32, String, &'a Uuid, BigInt, &'a Duration, &'a Decimal, bool, Vec<u32>, &'a Float, &'a Varint);
 
+#[derive(Debug, Clone)]
 pub struct QueryParameter<'a> {
   #[allow(clippy::type_complexity)]
   pub(crate) parameters: Option<Vec<ParameterWithMapType<'a>>>,
@@ -66,7 +69,15 @@ impl<'a> SerializeRow for QueryParameter<'a> {
             CqlValue::Blob(u32_vec_to_u8_vec(buffer))
               .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
           }
-          ParameterWithMapType::I(map) => {
+          ParameterWithMapType::I(float) => {
+            CqlValue::Float((*float).into())
+              .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
+          }
+          ParameterWithMapType::J(varint) => {
+            CqlValue::Varint((*varint).into())
+              .serialize(&ctx.columns()[i].typ, writer.make_cell_writer())?;
+          }
+          ParameterWithMapType::K(map) => {
             CqlValue::UserDefinedType {
               // FIXME: I'm not sure why this is even necessary tho, but if it's and makes sense we'll have to make it so we get the correct info
               keyspace: "keyspace".to_string(),
@@ -100,6 +111,12 @@ impl<'a> SerializeRow for QueryParameter<'a> {
                     key.to_string(),
                     Some(CqlValue::Blob(u32_vec_to_u8_vec(buffer))),
                   ),
+                  ParameterNativeTypes::J(varint) => {
+                    (key.to_string(), Some(CqlValue::Varint((*varint).into())))
+                  }
+                  ParameterNativeTypes::I(float) => {
+                    (key.to_string(), Some(CqlValue::Float((*float).into())))
+                  }
                 })
                 .collect::<Vec<(String, Option<CqlValue>)>>(),
             }

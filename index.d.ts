@@ -173,8 +173,7 @@ export class ScyllaSession {
    * driver does not check it by itself, so incorrect data will be written if the order is
    * wrong.
    */
-  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number> | Record<string, number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number>>> | undefined | null, options?: QueryOptions | undefined | null): Promise<JSQueryResult>
-  query(scyllaQuery: Query, parameters?: Array<number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number> | Record<string, number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number>>> | undefined | null): Promise<JSQueryResult>
+  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number> | Float | Varint | Record<string, number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number> | Float | Varint>> | undefined | null, options?: QueryOptions | undefined | null): Promise<JSQueryResult>
   prepare(query: string): Promise<PreparedStatement>
   /**
    * Perform a batch query\
@@ -212,9 +211,6 @@ export class ScyllaSession {
    *
    * console.log(await session.execute("SELECT * FROM users"));
    * ```
-   */
-  batch(batch: BatchStatement, parameters: Array<Array<number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number> | Record<string, number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number>>> | undefined | null>): Promise<JSQueryResult>
-  /**
    * Sends `USE <keyspace_name>` request on all connections\
    * This allows to write `SELECT * FROM table` instead of `SELECT * FROM keyspace.table`\
    *
@@ -303,6 +299,15 @@ export class Duration {
   /** Returns the string representation of the Duration. */
   toString(): string
 }
+/**
+ * A float number.
+ *
+ * Due to the nature of numbers in JavaScript, it's hard to distinguish between integers and floats, so this type is used to represent
+ * float numbers while any other JS number will be treated as an integer. (This is not the case for BigInts, which are always treated as BigInts).
+ */
+export class Float {
+  constructor(inner: number)
+}
 export class Uuid {
   /** Generates a random UUID v4. */
   static randomV4(): Uuid
@@ -310,6 +315,26 @@ export class Uuid {
   static fromString(str: string): Uuid
   /** Returns the string representation of the UUID. */
   toString(): string
+}
+/**
+ * Native CQL `varint` representation.
+ *
+ * Represented as two's-complement binary in big-endian order.
+ *
+ * This type is a raw representation in bytes. It's the default
+ * implementation of `varint` type - independent of any
+ * external crates and crate features.
+ *
+ * # DB data format
+ * Notice that constructors don't perform any normalization
+ * on the provided data. This means that underlying bytes may
+ * contain leading zeros.
+ *
+ * Currently, Scylla and Cassandra support non-normalized `varint` values.
+ * Bytes provided by the user via constructor are passed to DB as is.
+ */
+export class Varint {
+  constructor(inner: Array<number>)
 }
 
 type NativeTypes = number | string | Uuid | bigint | Duration | Decimal;

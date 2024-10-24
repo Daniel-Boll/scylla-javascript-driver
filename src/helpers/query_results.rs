@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use napi::bindgen_prelude::{BigInt, Either10, Either9};
+use napi::bindgen_prelude::{BigInt, Either9, Either10};
 use scylla::frame::response::result::{ColumnType, CqlValue};
 
 use crate::types::{decimal::Decimal, duration::Duration, uuid::Uuid};
