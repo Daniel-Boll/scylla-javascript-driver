@@ -57,8 +57,8 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
       tinybench:
-        specifier: ^2.8.0
-        version: 2.8.0
+        specifier: ^3.0.0
+        version: 3.0.0
       typescript:
         specifier: ^5.5.3
         version: 5.5.3
@@ -1564,8 +1564,9 @@ packages:
     resolution: {integrity: sha512-TIsDdtKo6+XrPtiTm1ssmMngN1sAhyKnTO2kunQWqNPWIVvCm15Wmw4SWInwTVgJ5u/Tr04+8Ei9TNcw4x4ONA==}
     engines: {node: '>=4'}
 
-  tinybench@2.8.0:
-    resolution: {integrity: sha512-1/eK7zUnIklz4JUUlL+658n58XO2hHLQfSk1Zf2LKieUjxidN16eKFEoDEfjHc3ohofSSqK3X5yO6VGb6iW8Lw==}
+  tinybench@3.0.0:
+    resolution: {integrity: sha512-931sGm66Zjp7c4o/DePaq8AKlCdq/ZldpS1b8O7r3SxSuxJpqoqeUprTOsW2CBhrw54U3mTmcS97LsBqPXEQLw==}
+    engines: {node: '>=18.0.0'}
 
   tmp@0.0.33:
     resolution: {integrity: sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==}
@@ -3078,7 +3079,7 @@ snapshots:
 
   time-zone@1.0.0: {}
 
-  tinybench@2.8.0: {}
+  tinybench@3.0.0: {}
 
   tmp@0.0.33:
     dependencies:
