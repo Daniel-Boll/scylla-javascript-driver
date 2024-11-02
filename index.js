@@ -378,6 +378,6 @@ module.exports.VerifyMode = nativeBinding.VerifyMode
 
 const customInspectSymbol = Symbol.for('nodejs.util.inspect.custom')
 
-Uuid.prototype[customInspectSymbol] = function () {
+nativeBinding.Uuid.prototype[customInspectSymbol] = function () {
   return this.toString();
 }

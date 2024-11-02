@@ -224,9 +224,6 @@ impl ScyllaSession {
 
     let result = QueryResult::parser(query_result);
 
-    dbg!(result.clone());
-    dbg!(tracing.clone());
-
     Ok(json!({
       "result": result,
       "tracing": tracing
