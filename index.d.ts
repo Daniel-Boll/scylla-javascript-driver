@@ -316,6 +316,10 @@ export class Float {
 export class List {
   constructor(values: Array<ParameterWithMapType>)
 }
+/** A list of any CqlType */
+export class Set {
+  constructor(values: Array<ParameterWithMapType>)
+}
 export class Uuid {
   /** Generates a random UUID v4. */
   static randomV4(): Uuid

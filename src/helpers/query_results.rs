@@ -130,11 +130,16 @@ impl QueryResult {
             .map(|e| Self::parse_value(&Some(e.clone()), list_type))
             .collect::<Vec<ReturnType>>(),
         )?)),
+        ColumnType::Set(set_type) => Ok(WithMapType::J(Self::extract_base_types(
+          column
+            .as_set()
+            .unwrap()
+            .iter()
+            .map(|e| Self::parse_value(&Some(e.clone()), set_type))
+            .collect::<Vec<ReturnType>>(),
+        )?)),
         ColumnType::Custom(_) => Ok(WithMapType::A(
           "ColumnType Custom not supported yet".to_string(),
-        )),
-        ColumnType::Set(_) => Ok(WithMapType::A(
-          "ColumnType Set not supported yet".to_string(),
         )),
         ColumnType::Tuple(_) => Ok(WithMapType::A(
           "ColumnType Tuple not supported yet".to_string(),

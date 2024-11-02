@@ -1,4 +1,4 @@
-import { Cluster, Set } from "../../index.js";
+import { Cluster, Set, Uuid } from "../../index.js";
 
 const nodes = process.env.CLUSTER_NODES?.split(",") ?? ["127.0.0.1:9042"];
 
@@ -13,12 +13,13 @@ await session.execute(
 await session.useKeyspace("sets");
 
 await session.execute(
-  "CREATE TABLE IF NOT EXISTS sets (a set<int>, primary key (a))",
+  "CREATE TABLE IF NOT EXISTS sets (a uuid, b set<int>, primary key (a))",
 );
 
-await session.execute("INSERT INTO sets (a) VALUES (?)", [
-  new Set<number>([1, 2, 3]),
-]);
+// await session.execute("INSERT INTO sets (a, b) VALUES (?, ?)", [
+//   Uuid.randomV4(),
+//   new Set<number>([1, 2, 3, 1]),
+// ]);
 
-const results = await session.execute("SELECT a FROM sets");
+const results = await session.execute("SELECT * FROM sets");
 console.log(results);
