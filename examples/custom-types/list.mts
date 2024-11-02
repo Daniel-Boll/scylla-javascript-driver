@@ -19,7 +19,7 @@ await session.execute(
 // NOTE: driver is not throwing errors if the return of the function is not used.
 await session.execute("INSERT INTO lists (a, b) VALUES (?, ?)", [
   Uuid.randomV4(),
-  new List<number>([1, 2, 3]),
+  new List<number>([1, 2, 3]), // TODO: add the generic to the type annotation on index.d.ts
 ]);
 
 const results = await session.execute("SELECT * FROM lists");
