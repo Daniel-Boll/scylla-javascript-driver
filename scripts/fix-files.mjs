@@ -4,14 +4,17 @@ function addGenericTypes(filename) {
   const content = readFileSync(filename, "utf8");
   const updatedContent = content
     .replace(
-      /export class List\b(.*){/,
-      "export class List<T = NativeTypes>$1{",
+      /export declare class List\b(.*){/,
+      "export declare class List<T = NativeTypes>$1{",
     )
     .replace(
-      /export class Map\b(.*){/,
-      "export class Map<T = NativeTypes, U = NativeTypes>$1{",
+      /export declare class Map\b(.*){/,
+      "export declare class Map<T = NativeTypes, U = NativeTypes>$1{",
     )
-    .replace(/export class Set\b(.*){/, "export class Set<T = NativeTypes>$1{");
+    .replace(
+      /export declare class Set\b(.*){/,
+      "export declare class Set<T = NativeTypes>$1{",
+    );
 
   writeFileSync(filename, updatedContent);
 }
@@ -25,9 +28,9 @@ function addInspector(filename) {
         `
 const customInspectSymbol = Symbol.for('nodejs.util.inspect.custom')
 
-Uuid.prototype[customInspectSymbol]     = function () { return this.toString(); }
-Duration.prototype[customInspectSymbol] = function () { return this.toString(); }
-Decimal.prototype[customInspectSymbol]  = function () { return this.toString(); }
+nativeBinding.Uuid.prototype[customInspectSymbol]     = function () { return this.toString(); }
+nativeBinding.Duration.prototype[customInspectSymbol] = function () { return this.toString(); }
+nativeBinding.Decimal.prototype[customInspectSymbol]  = function () { return this.toString(); }
 `,
       )
       .trim(),
@@ -43,7 +46,33 @@ function addJSQueryResultType(filename) {
 type NativeTypes = number | string | Uuid | bigint | Duration | Decimal | Float | List;
 type WithMapType = NativeTypes | Record<string, NativeTypes> | NativeTypes[];
 type ParameterWithMapType = WithMapType;
-type JSQueryResultType = Record<string, WithMapType>[];
+type JSQueryResult = Record<string, WithMapType>[];
+type TracingReturn = { result: JSQueryResult; tracing: TracingInfo };
+
+export interface TracingInfo {
+  client?: string; // IP address as a string
+  command?: string;
+  coordinator?: string; // IP address as a string
+  duration?: number;
+  parameters?: Record<string, string>;
+  request?: string;
+  /**
+   * started_at is a timestamp - time since unix epoch
+   */
+  started_at?: string;
+  events: TracingEvent[];
+}
+
+/**
+ * A single event happening during a traced query
+ */
+export interface TracingEvent {
+  event_id: string;
+  activity?: string;
+  source?: string; // IP address as a string
+  source_elapsed?: number;
+  thread?: string;
+}
         `,
       )
       .trim(),
