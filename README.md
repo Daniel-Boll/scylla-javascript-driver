@@ -1,4 +1,10 @@
 <div align="center">
+  
+[![ScyllaDB Unnoficial Discord Server](https://img.shields.io/badge/ScyllaDB_Developers-Discord_Server-4C388C)](https://discord.gg/CzCT4cyRrr)
+
+</div>
+
+<div align="center">
   <a href="https://github.com/daniel-boll/scylla-javascript-driver">
     <img src="assets/logo.png" alt="Scylla Nodejs Driver" width="640" />
   </a>
@@ -58,7 +64,7 @@ These instructions will get you a copy of the project up and running 🏃 on you
 To install this package, use the following command:
 
 ```bash
-npm install @lambda-group/scylladb
+npm install @lambda-group/scylladb@latest
 ```
 
 ## 📚 Examples 📚

@@ -2,7 +2,8 @@ name: CI
 env:
   DEBUG: napi:*
   APP_NAME: scylladb
-  MACOSX_DEPLOYMENT_TARGET: "10.13"
+  # MACOSX_DEPLOYMENT_TARGET: "10.13"
+  CARGO_INCREMENTAL: "1"
 permissions:
   contents: write
   id-token: write
@@ -20,6 +21,9 @@ permissions:
       - docs/**
   workflow_dispatch:
   pull_request: null
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   check-version-in-commit:
     runs-on: ubuntu-latest
@@ -45,38 +49,59 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: macos-latest
-            target: x86_64-apple-darwin
-            build: |
-              yarn build --target x86_64-apple-darwin
-              strip -x *.node
-          - host: macos-latest
-            target: aarch64-apple-darwin
-            build: |
-              yarn build --target aarch64-apple-darwin
-              strip -x *.node
+          #   target: x86_64-apple-darwin
+          #   build: yarn build --target x86_64-apple-darwin
           # - host: windows-latest
-          #   build: yarn build
+          #   build: yarn build --target x86_64-pc-windows-msvc
           #   target: x86_64-pc-windows-msvc
+          # - host: windows-latest
+          #   build: yarn build --target i686-pc-windows-msvc
+          #   target: i686-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
-            build: |-
-              set -e &&
-              yarn build --target x86_64-unknown-linux-gnu &&
-              strip *.node
-    name: stable - ${{ matrix.settings.target }} - node@18
+            build: yarn build --target x86_64-unknown-linux-gnu --use-napi-cross
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            build: yarn build --target x86_64-unknown-linux-musl -x
+
+          # NOTE: https://github.com/Daniel-Boll/scylla-javascript-driver/actions/runs/11087794843/job/30806888759 something went wrong, gotta fix that later
+          # - host: macos-latest
+          #   target: aarch64-apple-darwin
+          #   build: yarn build --target aarch64-apple-darwin
+
+          # - host: ubuntu-latest
+          #   target: aarch64-unknown-linux-gnu
+          #   build: yarn build --target aarch64-unknown-linux-gnu --use-napi-cross
+          # - host: ubuntu-latest
+          #   target: armv7-unknown-linux-gnueabihf
+          #   build: yarn build --target armv7-unknown-linux-gnueabihf --use-napi-cross
+          # - host: ubuntu-latest
+          #   target: aarch64-linux-android
+          #   build: yarn build --target aarch64-linux-android
+          # - host: ubuntu-latest
+          #   target: armv7-linux-androideabi
+          #   build: yarn build --target armv7-linux-androideabi
+          # - host: ubuntu-latest
+          #   target: aarch64-unknown-linux-musl
+          #   build: yarn build --target aarch64-unknown-linux-musl -x
+          # - host: windows-latest
+          #   target: aarch64-pc-windows-msvc
+          #   build: yarn build --target aarch64-pc-windows-msvc
+          # - host: ubuntu-latest
+          #   target: wasm32-wasip1-threads
+          #   build: yarn build --target wasm32-wasip1-threads
+    name: stable - ${{ matrix.settings.target }} - node@20
     runs-on: ${{ matrix.settings.host }}
     outputs:
       OPENSSL_DIR: ${{ steps.install_openssl.outputs.OPENSSL_DIR }}
       OPENSSL_STATIC: ${{ steps.install_openssl.outputs.OPENSSL_STATIC }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         if: ${{ !matrix.settings.docker }}
         with:
-          node-version: 18
+          node-version: 20
           check-latest: true
           cache: yarn
       - name: Install
@@ -85,35 +110,45 @@ jobs:
         with:
           toolchain: stable
           targets: ${{ matrix.settings.target }}
+      - name: Set up MUSL target and tools
+        if: ${{ contains(matrix.settings.target, 'musl') }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+          rustup target add ${{ matrix.settings.target }}
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
+            ~/.napi-rs
             .cargo-cache
             target/
           key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
       - uses: goto-bus-stop/setup-zig@v2
-        if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' }}
+        if: ${{ contains(matrix.settings.target, 'musl') }}
         with:
-          version: 0.10.1
+          version: 0.13.0
+      - name: Install cargo-zigbuild
+        uses: taiki-e/install-action@v2
+        if: ${{ contains(matrix.settings.target, 'musl') }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tool: cargo-zigbuild
       - name: Setup toolchain
         run: ${{ matrix.settings.setup }}
         if: ${{ matrix.settings.setup }}
         shell: bash
-      - name: Setup node x86
-        if: matrix.settings.target == 'i686-pc-windows-msvc'
-        run: yarn config set supportedArchitectures.cpu "ia32"
-        shell: bash
       - name: Install dependencies
         run: yarn install
       - name: Setup node x86
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         if: matrix.settings.target == 'i686-pc-windows-msvc'
         with:
-          node-version: 18
+          node-version: 20
           check-latest: true
           cache: yarn
           architecture: x86
@@ -132,7 +167,7 @@ jobs:
         if: ${{ !matrix.settings.docker }}
         shell: bash
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bindings-${{ matrix.settings.target }}
           path: ${{ env.APP_NAME }}.*.node
@@ -210,39 +245,39 @@ jobs:
   #       shell: bash
   #     - name: Test bindings
   #       run: docker run --rm -v $(pwd):/build -w /build node:${{ matrix.node }}-slim yarn test
-  universal-macOS:
-    name: Build universal macOS binary
-    needs:
-      - build
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          check-latest: true
-          cache: yarn
-      - name: Install dependencies
-        run: yarn install
-      - name: Download macOS x64 artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: bindings-x86_64-apple-darwin
-          path: artifacts
-      - name: Download macOS arm64 artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: bindings-aarch64-apple-darwin
-          path: artifacts
-      - name: Combine binaries
-        run: yarn universal
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: bindings-universal-apple-darwin
-          path: ${{ env.APP_NAME }}.*.node
-          if-no-files-found: error
+  # universal-macOS:
+  #   name: Build universal macOS binary
+  #   needs:
+  #     - build
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: Setup node
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 18
+  #         check-latest: true
+  #         cache: yarn
+  #     - name: Install dependencies
+  #       run: yarn install
+  #     # - name: Download macOS x64 artifact
+  #     #   uses: actions/download-artifact@v3
+  #     #   with:
+  #     #     name: bindings-x86_64-apple-darwin
+  #     #     path: artifacts
+  #     - name: Download macOS arm64 artifact
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: bindings-aarch64-apple-darwin
+  #         path: artifacts
+  #     - name: Combine binaries
+  #       run: yarn universal
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: bindings-universal-apple-darwin
+  #         path: ${{ env.APP_NAME }}.*.node
+  #         if-no-files-found: error
   publish:
     if: needs.check-version-in-commit.outputs.should_publish == 'true'
     name: Publish
@@ -251,11 +286,11 @@ jobs:
       - check-version-in-commit
       # - test-macOS-windows-binding
       # - test-linux-x64-gnu-binding
-      - universal-macOS
+      - build
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           check-latest: true
@@ -263,7 +298,7 @@ jobs:
       - name: Install dependencies
         run: yarn install
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
       - name: Move artifacts

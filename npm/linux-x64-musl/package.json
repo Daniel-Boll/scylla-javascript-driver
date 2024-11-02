@@ -1,12 +1,12 @@
 {
-  "name": "@lambda-group/scylladb-darwin-arm64",
+  "name": "@lambda-group/scylladb-linux-x64-musl",
   "version": "0.6.5",
   "cpu": [
-    "arm64"
+    "x64"
   ],
-  "main": "scylladb.darwin-arm64.node",
+  "main": "scylladb.linux-x64-musl.node",
   "files": [
-    "scylladb.darwin-arm64.node"
+    "scylladb.linux-x64-musl.node"
   ],
   "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
   "author": {
@@ -20,6 +20,9 @@
   },
   "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver",
   "os": [
-    "darwin"
+    "linux"
+  ],
+  "libc": [
+    "musl"
   ]
 }

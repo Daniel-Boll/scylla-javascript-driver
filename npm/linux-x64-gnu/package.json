@@ -1,9 +1,6 @@
 {
   "name": "@lambda-group/scylladb-linux-x64-gnu",
-  "version": "0.5.1",
-  "os": [
-    "linux"
-  ],
+  "version": "0.6.5",
   "cpu": [
     "x64"
   ],
@@ -12,11 +9,19 @@
     "scylladb.linux-x64-gnu.node"
   ],
   "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
+  "author": {
+    "name": "Daniel Boll",
+    "email": "danielboll.dev@proton.me",
+    "url": "https://daniel-boll.me"
+  },
   "license": "MIT",
   "engines": {
     "node": ">= 10"
   },
   "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver",
+  "os": [
+    "linux"
+  ],
   "libc": [
     "glibc"
   ]

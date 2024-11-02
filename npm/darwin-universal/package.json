@@ -1,17 +1,22 @@
 {
   "name": "@lambda-group/scylladb-darwin-universal",
-  "version": "0.5.1",
-  "os": [
-    "darwin"
-  ],
+  "version": "0.6.5",
   "main": "scylladb.darwin-universal.node",
   "files": [
     "scylladb.darwin-universal.node"
   ],
   "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
+  "author": {
+    "name": "Daniel Boll",
+    "email": "danielboll.dev@proton.me",
+    "url": "https://daniel-boll.me"
+  },
   "license": "MIT",
   "engines": {
     "node": ">= 10"
   },
-  "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver"
+  "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver",
+  "os": [
+    "darwin"
+  ]
 }
