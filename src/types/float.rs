@@ -3,7 +3,7 @@
 /// Due to the nature of numbers in JavaScript, it's hard to distinguish between integers and floats, so this type is used to represent
 /// float numbers while any other JS number will be treated as an integer. (This is not the case for BigInts, which are always treated as BigInts).
 #[napi]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Float {
   pub(crate) inner: f64,
 }

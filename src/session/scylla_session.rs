@@ -4,9 +4,11 @@ use crate::helpers::query_results::{JSQueryResult, QueryResult};
 use crate::query::batch_statement::ScyllaBatchStatement;
 use crate::query::scylla_prepared_statement::PreparedStatement;
 use crate::query::scylla_query::Query;
+use crate::types::tracing::TracingReturn;
 use crate::types::uuid::Uuid;
 use napi::Either;
 use napi::bindgen_prelude::Either3;
+use scylla::statement::query::Query as ScyllaQuery;
 
 use super::metrics;
 use super::topology::ScyllaClusterData;
@@ -44,6 +46,61 @@ impl ScyllaSession {
     cluster_data.into()
   }
 
+  #[napi]
+  pub async fn execute_with_tracing(
+    &self,
+    query: Either3<String, &Query, &PreparedStatement>,
+    parameters: Option<Vec<ParameterWithMapType<'_>>>,
+    options: Option<QueryOptions>,
+  ) -> napi::Result<TracingReturn> {
+    let values = QueryParameter::parser(parameters.clone()).ok_or_else(|| {
+      napi::Error::new(
+        napi::Status::InvalidArg,
+        format!(
+          "Something went wrong with your query parameters. {:?}",
+          parameters
+        ),
+      )
+    })?;
+
+    let should_prepare = options.map_or(false, |options| options.prepare.unwrap_or(false));
+
+    match query {
+      Either3::A(ref query_str) if should_prepare => {
+        let mut prepared = self.session.prepare(query_str.clone()).await.map_err(|e| {
+          napi::Error::new(
+            napi::Status::InvalidArg,
+            format!(
+              "Something went wrong preparing your statement. - [{}]\n{}",
+              query_str, e
+            ),
+          )
+        })?;
+        prepared.set_tracing(true);
+        self.execute_prepared(&prepared, values, query_str).await
+      }
+      Either3::A(query_str) => {
+        let mut query = ScyllaQuery::new(query_str);
+        query.set_tracing(true);
+        self.execute_query(Either::B(query), values).await
+      }
+      Either3::B(query_ref) => {
+        let mut query = query_ref.query.clone();
+        query.set_tracing(true);
+
+        self.execute_query(Either::B(query), values).await
+      }
+      Either3::C(prepared_ref) => {
+        let mut prepared = prepared_ref.prepared.clone();
+        prepared.set_tracing(true);
+
+        self
+          .execute_prepared(&prepared, values, prepared_ref.prepared.get_statement())
+          .await
+      }
+    }
+  }
+
   /// Sends a query to the database and receives a response.\
   /// Returns only a single page of results, to receive multiple pages use (TODO: Not implemented yet)
   ///
@@ -77,7 +134,7 @@ impl ScyllaSession {
 
     let should_prepare = options.map_or(false, |options| options.prepare.unwrap_or(false));
 
-    match query {
+    let a = match query {
       Either3::A(ref query_str) if should_prepare => {
         let prepared = self.session.prepare(query_str.clone()).await.map_err(|e| {
           napi::Error::new(
@@ -106,6 +163,23 @@ impl ScyllaSession {
           .await
       }
     }
+    .map_err(|e| {
+      napi::Error::new(
+        napi::Status::InvalidArg,
+        format!("Something went wrong with your query. - \n{}", e), // TODO: handle different queries here
+      )
+    })?
+    .get("result")
+    .cloned()
+    .ok_or(napi::Error::new(
+      napi::Status::InvalidArg,
+      r#"Something went wrong with your query."#.to_string(), // TODO: handle different queries here
+    ))?;
+
+    match a {
+      Either::A(results) => Ok(results),
+      Either::B(_tracing) => unreachable!(),
+    }
   }
 
   // Helper method to handle prepared statements
@@ -114,7 +188,7 @@ impl ScyllaSession {
     prepared: &scylla::prepared_statement::PreparedStatement,
     values: QueryParameter<'_>,
     query: &str,
-  ) -> JSQueryResult {
+  ) -> napi::Result<TracingReturn> {
     let query_result = self.session.execute(prepared, values).await.map_err(|e| {
       napi::Error::new(
         napi::Status::InvalidArg,
@@ -124,7 +198,33 @@ impl ScyllaSession {
         ),
       )
     })?;
-    QueryResult::parser(query_result)
+
+    let tracing = if let Some(tracing_id) = query_result.tracing_id {
+      Some(crate::types::tracing::TracingInfo::from(
+        self
+          .session
+          .get_tracing_info(&tracing_id)
+          .await
+          .map_err(|e| {
+            napi::Error::new(
+              napi::Status::InvalidArg,
+              format!(
+                "Something went wrong with your tracing info. - [{}]\n{}",
+                query, e
+              ),
+            )
+          })?,
+      ))
+    } else {
+      None
+    };
+
+    let result = QueryResult::parser(query_result)?;
+
+    Ok(TracingReturn::from([
+      ("result".to_string(), Either::A(result)),
+      ("tracing".to_string(), Either::B(tracing.into())),
+    ]))
   }
 
   // Helper method to handle direct queries
@@ -132,13 +232,13 @@ impl ScyllaSession {
     &self,
     query: Either<String, scylla::query::Query>,
     values: QueryParameter<'_>,
-  ) -> JSQueryResult {
+  ) -> napi::Result<TracingReturn> {
     let query_result = match &query {
       Either::A(query_str) => self.session.query(query_str.clone(), values).await,
       Either::B(query_ref) => self.session.query(query_ref.clone(), values).await,
     }
     .map_err(|e| {
-      let query_str = match query {
+      let query_str = match query.clone() {
         Either::A(query_str) => query_str,
         Either::B(query_ref) => query_ref.contents.clone(),
       };
@@ -151,7 +251,37 @@ impl ScyllaSession {
       )
     })?;
 
-    QueryResult::parser(query_result)
+    let tracing_info = if let Some(tracing_id) = query_result.tracing_id {
+      Some(crate::types::tracing::TracingInfo::from(
+        self
+          .session
+          .get_tracing_info(&tracing_id)
+          .await
+          .map_err(|e| {
+            napi::Error::new(
+              napi::Status::InvalidArg,
+              format!(
+                "Something went wrong with your tracing info. - [{}]\n{}",
+                match query {
+                  Either::A(query_str) => query_str,
+                  Either::B(query_ref) => query_ref.contents.clone(),
+                },
+                e
+              ),
+            )
+          })?,
+      ))
+    } else {
+      None
+    };
+
+    Ok(TracingReturn::from([
+      (
+        "result".to_string(),
+        Either::A(QueryResult::parser(query_result)?),
+      ),
+      ("tracing".to_string(), Either::B(tracing_info.into())),
+    ]))
   }
 
   #[allow(clippy::type_complexity)]

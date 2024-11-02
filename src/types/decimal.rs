@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use scylla::frame::value::CqlDecimal;
 
 #[napi]
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Decimal {
   int_val: Vec<u8>,
   scale: i32,

@@ -16,7 +16,7 @@ use scylla::frame::value::CqlVarint;
 /// Currently, Scylla and Cassandra support non-normalized `varint` values.
 /// Bytes provided by the user via constructor are passed to DB as is.
 #[napi]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Varint {
   pub(crate) inner: Vec<u8>,
 }

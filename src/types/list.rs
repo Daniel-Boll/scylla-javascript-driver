@@ -4,7 +4,7 @@ use crate::helpers::{cql_value_bridge::ParameterWithMapType, to_cql_value::ToCql
 
 /// A list of any CqlType
 #[napi]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct List {
   pub(crate) inner: Vec<CqlValue>,
 }

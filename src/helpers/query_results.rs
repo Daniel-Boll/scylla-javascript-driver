@@ -12,7 +12,7 @@ macro_rules! define_return_type {
     ($($t:ty),+) => {
       type BaseTypes = Either9<$($t),+>;
       type NativeTypes = Either10<$($t),+, Vec<BaseTypes>>;
-      type WithMapType = Either11<$($t),+, Vec<BaseTypes>, HashMap<String, NativeTypes>>;
+      pub type WithMapType = Either11<$($t),+, Vec<BaseTypes>, HashMap<String, NativeTypes>>;
       type ReturnType = napi::Result<Option<WithMapType>>;
       pub type JSQueryResult = napi::Result<Vec<HashMap<String, WithMapType>>>;
     };
