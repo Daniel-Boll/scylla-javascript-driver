@@ -32,6 +32,41 @@ export declare class Cluster {
 }
 export type ScyllaCluster = Cluster
 
+export declare class Decimal {
+  constructor(intVal: Array<number>, scale: number)
+  /** Returns the string representation of the Decimal. */
+  toString(): string
+}
+
+export declare class Duration {
+  months: number
+  days: number
+  nanoseconds: number
+  constructor(months: number, days: number, nanoseconds: number)
+  /** Returns the string representation of the Duration. */
+  toString(): string
+}
+
+/**
+ * A float number.
+ *
+ * Due to the nature of numbers in JavaScript, it's hard to distinguish between integers and floats, so this type is used to represent
+ * float numbers while any other JS number will be treated as an integer. (This is not the case for BigInts, which are always treated as BigInts).
+ */
+export declare class Float {
+  constructor(inner: number)
+}
+
+/** A list of any CqlType */
+export declare class List<T = NativeTypes> {
+  constructor(values: T[])
+}
+
+/** A map of any CqlType to any CqlType */
+export declare class Map<T = NativeTypes, U = NativeTypes> {
+  constructor(values: Array<Array<T | U>>)
+}
+
 export declare class Metrics {
   /** Returns counter for nonpaged queries */
   getQueriesNum(): bigint
@@ -76,7 +111,7 @@ export declare class ScyllaClusterData {
 export declare class ScyllaSession {
   metrics(): Metrics
   getClusterData(): Promise<ScyllaClusterData>
-  executeWithTracing(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null, options?: QueryOptions | undefined | null): Promise<any>
+  executeWithTracing(query: string | Query | PreparedStatement, parameters?: Array<ParameterWithMapType> | undefined | null, options?: QueryOptions | undefined | null): Promise<TracingReturn>
   /**
    * Sends a query to the database and receives a response.\
    * Returns only a single page of results, to receive multiple pages use (TODO: Not implemented yet)
@@ -93,8 +128,8 @@ export declare class ScyllaSession {
    * driver does not check it by itself, so incorrect data will be written if the order is
    * wrong.
    */
-  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null, options?: QueryOptions | undefined | null): Promise<any>
-  query(scyllaQuery: Query, parameters?: Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null): Promise<any>
+  execute(query: string | Query | PreparedStatement, parameters?: Array<ParameterWithMapType> | undefined | null, options?: QueryOptions | undefined | null): Promise<JSQueryResult>
+  query(scyllaQuery: Query, parameters?: Array<ParameterWithMapType> | undefined | null): Promise<JSQueryResult>
   prepare(query: string): Promise<PreparedStatement>
   /**
    * Perform a batch query\
@@ -133,7 +168,7 @@ export declare class ScyllaSession {
    * console.log(await session.execute("SELECT * FROM users"));
    * ```
    */
-  batch(batch: BatchStatement, parameters: Array<Array<number | string | Uuid | Record<string, number | string | Uuid>> | undefined | null>): Promise<any>
+  batch(batch: BatchStatement, parameters: Array<Array<ParameterWithMapType> | undefined | null>): Promise<JSQueryResult>
   /**
    * Sends `USE <keyspace_name>` request on all connections\
    * This allows to write `SELECT * FROM table` instead of `SELECT * FROM keyspace.table`\
@@ -204,6 +239,11 @@ export declare class ScyllaSession {
   checkSchemaAgreement(): Promise<boolean>
 }
 
+/** A list of any CqlType */
+export declare class Set<T = NativeTypes> {
+  constructor(values: T[])
+}
+
 export declare class Uuid {
   /** Generates a random UUID v4. */
   static randomV4(): Uuid
@@ -211,6 +251,27 @@ export declare class Uuid {
   static fromString(str: string): Uuid
   /** Returns the string representation of the UUID. */
   toString(): string
+}
+
+/**
+ * Native CQL `varint` representation.
+ *
+ * Represented as two's-complement binary in big-endian order.
+ *
+ * This type is a raw representation in bytes. It's the default
+ * implementation of `varint` type - independent of any
+ * external crates and crate features.
+ *
+ * # DB data format
+ * Notice that constructors don't perform any normalization
+ * on the provided data. This means that underlying bytes may
+ * contain leading zeros.
+ *
+ * Currently, Scylla and Cassandra support non-normalized `varint` values.
+ * Bytes provided by the user via constructor are passed to DB as is.
+ */
+export declare class Varint {
+  constructor(inner: Array<number>)
 }
 
 export interface Auth {
@@ -319,4 +380,35 @@ export interface Ssl {
 export declare const enum VerifyMode {
   None = 0,
   Peer = 1
+}
+
+type NativeTypes = number | string | Uuid | bigint | Duration | Decimal | Float | List;
+type WithMapType = NativeTypes | Record<string, NativeTypes> | NativeTypes[];
+type ParameterWithMapType = WithMapType;
+type JSQueryResult = Record<string, WithMapType>[];
+type TracingReturn = { result: JSQueryResult; tracing: TracingInfo };
+
+export interface TracingInfo {
+  client?: string; // IP address as a string
+  command?: string;
+  coordinator?: string; // IP address as a string
+  duration?: number;
+  parameters?: Record<string, string>;
+  request?: string;
+  /**
+   * started_at is a timestamp - time since unix epoch
+   */
+  started_at?: string;
+  events: TracingEvent[];
+}
+
+/**
+ * A single event happening during a traced query
+ */
+export interface TracingEvent {
+  event_id: string;
+  activity?: string;
+  source?: string; // IP address as a string
+  source_elapsed?: number;
+  thread?: string;
 }

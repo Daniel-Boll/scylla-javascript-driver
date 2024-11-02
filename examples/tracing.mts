@@ -7,7 +7,7 @@ console.log(`Connecting to ${nodes}`);
 const cluster = new Cluster({ nodes });
 const session = await cluster.connect();
 
-const { tracing } = await session.executeWithTracing(
+const { tracing, result } = await session.executeWithTracing(
   "SELECT * FROM system_schema.scylla_tables",
   [],
   // {
@@ -15,4 +15,4 @@ const { tracing } = await session.executeWithTracing(
   // },
 );
 
-console.log(tracing);
+console.log(result, tracing);

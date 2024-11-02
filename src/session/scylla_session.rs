@@ -1,15 +1,13 @@
-use std::collections::HashMap;
-
+use crate::helpers::cql_value_bridge::ParameterWithMapType;
 use crate::helpers::query_parameter::QueryParameter;
-use crate::helpers::query_results::QueryResult;
+use crate::helpers::query_results::{JSQueryResult, QueryResult};
 use crate::query::batch_statement::ScyllaBatchStatement;
 use crate::query::scylla_prepared_statement::PreparedStatement;
 use crate::query::scylla_query::Query;
+use crate::types::tracing::TracingReturn;
 use crate::types::uuid::Uuid;
 use napi::Either;
-use napi::bindgen_prelude::{Either3, Either4};
-use serde_json::json;
-
+use napi::bindgen_prelude::Either3;
 use scylla::statement::query::Query as ScyllaQuery;
 
 use super::metrics;
@@ -48,16 +46,13 @@ impl ScyllaSession {
     cluster_data.into()
   }
 
-  #[allow(clippy::type_complexity)]
   #[napi]
   pub async fn execute_with_tracing(
     &self,
     query: Either3<String, &Query, &PreparedStatement>,
-    parameters: Option<
-      Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>,
-    >,
+    parameters: Option<Vec<ParameterWithMapType<'_>>>,
     options: Option<QueryOptions>,
-  ) -> napi::Result<serde_json::Value> {
+  ) -> napi::Result<TracingReturn> {
     let values = QueryParameter::parser(parameters.clone()).ok_or_else(|| {
       napi::Error::new(
         napi::Status::InvalidArg,
@@ -120,16 +115,13 @@ impl ScyllaSession {
   /// Order of fields in the object must match the order of fields as defined in the UDT. The
   /// driver does not check it by itself, so incorrect data will be written if the order is
   /// wrong.
-  #[allow(clippy::type_complexity)]
   #[napi]
   pub async fn execute(
     &self,
     query: Either3<String, &Query, &PreparedStatement>,
-    parameters: Option<
-      Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>,
-    >,
+    parameters: Option<Vec<ParameterWithMapType<'_>>>,
     options: Option<QueryOptions>,
-  ) -> napi::Result<serde_json::Value> {
+  ) -> JSQueryResult {
     let values = QueryParameter::parser(parameters.clone()).ok_or_else(|| {
       napi::Error::new(
         napi::Status::InvalidArg,
@@ -142,7 +134,7 @@ impl ScyllaSession {
 
     let should_prepare = options.map_or(false, |options| options.prepare.unwrap_or(false));
 
-    match query {
+    let result = match query {
       Either3::A(ref query_str) if should_prepare => {
         let prepared = self.session.prepare(query_str.clone()).await.map_err(|e| {
           napi::Error::new(
@@ -182,7 +174,12 @@ impl ScyllaSession {
     .ok_or(napi::Error::new(
       napi::Status::InvalidArg,
       r#"Something went wrong with your query."#.to_string(), // TODO: handle different queries here
-    ))
+    ))?;
+
+    match result {
+      Either::A(results) => Ok(results),
+      Either::B(_tracing) => unreachable!(),
+    }
   }
 
   // Helper method to handle prepared statements
@@ -191,7 +188,7 @@ impl ScyllaSession {
     prepared: &scylla::prepared_statement::PreparedStatement,
     values: QueryParameter<'_>,
     query: &str,
-  ) -> napi::Result<serde_json::Value> {
+  ) -> napi::Result<TracingReturn> {
     let query_result = self.session.execute(prepared, values).await.map_err(|e| {
       napi::Error::new(
         napi::Status::InvalidArg,
@@ -222,12 +219,12 @@ impl ScyllaSession {
       None
     };
 
-    let result = QueryResult::parser(query_result);
+    let result = QueryResult::parser(query_result)?;
 
-    Ok(json!({
-      "result": result,
-      "tracing": tracing
-    }))
+    Ok(TracingReturn::from([
+      ("result".to_string(), Either::A(result)),
+      ("tracing".to_string(), Either::B(tracing.into())),
+    ]))
   }
 
   // Helper method to handle direct queries
@@ -235,7 +232,7 @@ impl ScyllaSession {
     &self,
     query: Either<String, scylla::query::Query>,
     values: QueryParameter<'_>,
-  ) -> napi::Result<serde_json::Value> {
+  ) -> napi::Result<TracingReturn> {
     let query_result = match &query {
       Either::A(query_str) => self.session.query(query_str.clone(), values).await,
       Either::B(query_ref) => self.session.query(query_ref.clone(), values).await,
@@ -278,10 +275,13 @@ impl ScyllaSession {
       None
     };
 
-    Ok(json!({
-      "result": QueryResult::parser(query_result),
-      "tracing": tracing_info
-    }))
+    Ok(TracingReturn::from([
+      (
+        "result".to_string(),
+        Either::A(QueryResult::parser(query_result)?),
+      ),
+      ("tracing".to_string(), Either::B(tracing_info.into())),
+    ]))
   }
 
   #[allow(clippy::type_complexity)]
@@ -289,10 +289,8 @@ impl ScyllaSession {
   pub async fn query(
     &self,
     scylla_query: &Query,
-    parameters: Option<
-      Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>,
-    >,
-  ) -> napi::Result<serde_json::Value> {
+    parameters: Option<Vec<ParameterWithMapType<'_>>>,
+  ) -> JSQueryResult {
     let values = QueryParameter::parser(parameters.clone()).ok_or(napi::Error::new(
       napi::Status::InvalidArg,
       format!("Something went wrong with your query parameters. {parameters:?}"),
@@ -309,7 +307,7 @@ impl ScyllaSession {
         )
       })?;
 
-    Ok(QueryResult::parser(query_result))
+    QueryResult::parser(query_result)
   }
 
   #[napi]
@@ -364,10 +362,8 @@ impl ScyllaSession {
   pub async fn batch(
     &self,
     batch: &ScyllaBatchStatement,
-    parameters: Vec<
-      Option<Vec<Either4<u32, String, &Uuid, HashMap<String, Either3<u32, String, &Uuid>>>>>,
-    >,
-  ) -> napi::Result<serde_json::Value> {
+    parameters: Vec<Option<Vec<ParameterWithMapType<'_>>>>,
+  ) -> JSQueryResult {
     let values = parameters
       .iter()
       .map(|params| {
@@ -389,7 +385,7 @@ impl ScyllaSession {
         )
       })?;
 
-    Ok(QueryResult::parser(query_result))
+    QueryResult::parser(query_result)
   }
 
   /// Sends `USE <keyspace_name>` request on all connections\

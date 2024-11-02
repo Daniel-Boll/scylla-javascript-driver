@@ -1,6 +1,9 @@
 use std::{collections::HashMap, net::IpAddr};
 
+use napi::Either;
 use serde::Serialize;
+
+use crate::helpers::query_results::WithMapType;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CqlTimestampWrapper(pub scylla::frame::value::CqlTimestamp);
@@ -51,6 +54,12 @@ pub struct TracingEvent {
   pub thread: Option<String>,
 }
 
+impl From<TracingInfo> for serde_json::Value {
+  fn from(info: TracingInfo) -> Self {
+    serde_json::json!(info)
+  }
+}
+
 impl From<scylla::tracing::TracingInfo> for TracingInfo {
   fn from(info: scylla::tracing::TracingInfo) -> Self {
     Self {
@@ -77,3 +86,6 @@ impl From<scylla::tracing::TracingEvent> for TracingEvent {
     }
   }
 }
+
+pub type TracingReturn =
+  HashMap<String, Either<Vec<HashMap<String, WithMapType>>, serde_json::Value>>;

@@ -1,4 +1,4 @@
-import { Cluster } from "../index.js";
+import { Cluster } from "../../index.js";
 
 const nodes = process.env.CLUSTER_NODES?.split(",") ?? ["127.0.0.1:9042"];
 

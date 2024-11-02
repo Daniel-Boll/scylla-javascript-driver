@@ -365,12 +365,19 @@ module.exports.BatchStatement = nativeBinding.BatchStatement
 module.exports.ScyllaBatchStatement = nativeBinding.ScyllaBatchStatement
 module.exports.Cluster = nativeBinding.Cluster
 module.exports.ScyllaCluster = nativeBinding.ScyllaCluster
+module.exports.Decimal = nativeBinding.Decimal
+module.exports.Duration = nativeBinding.Duration
+module.exports.Float = nativeBinding.Float
+module.exports.List = nativeBinding.List
+module.exports.Map = nativeBinding.Map
 module.exports.Metrics = nativeBinding.Metrics
 module.exports.PreparedStatement = nativeBinding.PreparedStatement
 module.exports.Query = nativeBinding.Query
 module.exports.ScyllaClusterData = nativeBinding.ScyllaClusterData
 module.exports.ScyllaSession = nativeBinding.ScyllaSession
+module.exports.Set = nativeBinding.Set
 module.exports.Uuid = nativeBinding.Uuid
+module.exports.Varint = nativeBinding.Varint
 module.exports.Compression = nativeBinding.Compression
 module.exports.Consistency = nativeBinding.Consistency
 module.exports.SerialConsistency = nativeBinding.SerialConsistency
@@ -378,6 +385,6 @@ module.exports.VerifyMode = nativeBinding.VerifyMode
 
 const customInspectSymbol = Symbol.for('nodejs.util.inspect.custom')
 
-nativeBinding.Uuid.prototype[customInspectSymbol] = function () {
-  return this.toString();
-}
+nativeBinding.Uuid.prototype[customInspectSymbol]     = function () { return this.toString(); }
+nativeBinding.Duration.prototype[customInspectSymbol] = function () { return this.toString(); }
+nativeBinding.Decimal.prototype[customInspectSymbol]  = function () { return this.toString(); }
