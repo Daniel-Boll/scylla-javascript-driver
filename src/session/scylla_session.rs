@@ -134,7 +134,7 @@ impl ScyllaSession {
 
     let should_prepare = options.map_or(false, |options| options.prepare.unwrap_or(false));
 
-    let a = match query {
+    let result = match query {
       Either3::A(ref query_str) if should_prepare => {
         let prepared = self.session.prepare(query_str.clone()).await.map_err(|e| {
           napi::Error::new(
@@ -176,7 +176,7 @@ impl ScyllaSession {
       r#"Something went wrong with your query."#.to_string(), // TODO: handle different queries here
     ))?;
 
-    match a {
+    match result {
       Either::A(results) => Ok(results),
       Either::B(_tracing) => unreachable!(),
     }
