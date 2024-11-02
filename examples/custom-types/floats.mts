@@ -16,7 +16,7 @@ await session.execute(
   "CREATE TABLE IF NOT EXISTS floats (a float, primary key (a))",
 );
 
-await session.execute("INSERT INTO floats (a) VALUES (?)", [new Float(1.1)]); // :(
+await session.execute("INSERT INTO floats (a) VALUES (?)", [new Float(1.1)]);
 
 const results = await session.execute("SELECT a FROM floats");
 console.log(results);

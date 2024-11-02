@@ -173,7 +173,8 @@ export class ScyllaSession {
    * driver does not check it by itself, so incorrect data will be written if the order is
    * wrong.
    */
-  execute(query: string | Query | PreparedStatement, parameters?: Array<number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number> | Float | Varint | Record<string, number | string | Uuid | bigint | Duration | Decimal | boolean | Array<number> | Float | Varint>> | undefined | null, options?: QueryOptions | undefined | null): Promise<JSQueryResult>
+  execute(query: string | Query | PreparedStatement, parameters?: Array<ParameterWithMapType> | undefined | null, options?: QueryOptions | undefined | null): Promise<JSQueryResult>
+  query(scyllaQuery: Query, parameters?: Array<ParameterWithMapType> | undefined | null): Promise<JSQueryResult>
   prepare(query: string): Promise<PreparedStatement>
   /**
    * Perform a batch query\
@@ -211,6 +212,9 @@ export class ScyllaSession {
    *
    * console.log(await session.execute("SELECT * FROM users"));
    * ```
+   */
+  batch(batch: BatchStatement, parameters: Array<Array<ParameterWithMapType> | undefined | null>): Promise<JSQueryResult>
+  /**
    * Sends `USE <keyspace_name>` request on all connections\
    * This allows to write `SELECT * FROM table` instead of `SELECT * FROM keyspace.table`\
    *
@@ -308,6 +312,10 @@ export class Duration {
 export class Float {
   constructor(inner: number)
 }
+/** A list of any CqlType */
+export class List {
+  constructor(values: Array<ParameterWithMapType>)
+}
 export class Uuid {
   /** Generates a random UUID v4. */
   static randomV4(): Uuid
@@ -337,6 +345,7 @@ export class Varint {
   constructor(inner: Array<number>)
 }
 
-type NativeTypes = number | string | Uuid | bigint | Duration | Decimal;
-type WithMapType = NativeTypes | Record<string, NativeTypes>;
+type NativeTypes = number | string | Uuid | bigint | Duration | Decimal | Float | List;
+type WithMapType = NativeTypes | Record<string, NativeTypes> | NativeTypes[];
+type ParameterWithMapType = WithMapType;
 type JSQueryResultType = Record<string, WithMapType>[];

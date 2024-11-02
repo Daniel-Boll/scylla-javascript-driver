@@ -1,16 +1,12 @@
+use crate::helpers::cql_value_bridge::ParameterWithMapType;
 use crate::helpers::query_parameter::QueryParameter;
 use crate::helpers::query_results::{JSQueryResult, QueryResult};
 use crate::query::batch_statement::ScyllaBatchStatement;
 use crate::query::scylla_prepared_statement::PreparedStatement;
 use crate::query::scylla_query::Query;
-use crate::types::decimal::Decimal;
-use crate::types::duration::Duration;
-use crate::types::float::Float;
 use crate::types::uuid::Uuid;
-use crate::types::varint::Varint;
 use napi::Either;
-use napi::bindgen_prelude::{BigInt, Either3, Either10, Either11};
-use std::collections::HashMap;
+use napi::bindgen_prelude::Either3;
 
 use super::metrics;
 use super::topology::ScyllaClusterData;
@@ -62,42 +58,11 @@ impl ScyllaSession {
   /// Order of fields in the object must match the order of fields as defined in the UDT. The
   /// driver does not check it by itself, so incorrect data will be written if the order is
   /// wrong.
-  #[allow(clippy::type_complexity)]
   #[napi]
   pub async fn execute(
     &self,
     query: Either3<String, &Query, &PreparedStatement>,
-    parameters: Option<
-      Vec<
-        Either11<
-          u32,
-          String,
-          &Uuid,
-          BigInt,
-          &Duration,
-          &Decimal,
-          bool,
-          Vec<u32>,
-          &Float,
-          &Varint,
-          HashMap<
-            String,
-            Either10<
-              u32,
-              String,
-              &Uuid,
-              BigInt,
-              &Duration,
-              &Decimal,
-              bool,
-              Vec<u32>,
-              &Float,
-              &Varint,
-            >,
-          >,
-        >,
-      >,
-    >,
+    parameters: Option<Vec<ParameterWithMapType<'_>>>,
     options: Option<QueryOptions>,
   ) -> JSQueryResult {
     let values = QueryParameter::parser(parameters.clone()).ok_or_else(|| {
@@ -189,50 +154,31 @@ impl ScyllaSession {
     QueryResult::parser(query_result)
   }
 
-  // #[allow(clippy::type_complexity)]
-  // #[napi]
-  // pub async fn query(
-  //   &self,
-  //   scylla_query: &Query,
-  //   parameters: Option<
-  //     Vec<
-  //       Either10<
-  //         u32,
-  //         String,
-  //         &Uuid,
-  //         BigInt,
-  //         &Duration,
-  //         &Decimal,
-  //         bool,
-  //         Vec<u32>,
-  //         &Float,
-  //         HashMap<
-  //           String,
-  //           Either9<u32, String, &Uuid, BigInt, &Duration, &Decimal, bool, Vec<u32>, &Float>,
-  //         >,
-  //       >,
-  //     >,
-  //   >,
-  // ) -> JSQueryResult {
-  //   let values = QueryParameter::parser(parameters.clone()).ok_or(napi::Error::new(
-  //     napi::Status::InvalidArg,
-  //     format!("Something went wrong with your query parameters. {parameters:?}"),
-  //   ))?;
+  #[allow(clippy::type_complexity)]
+  #[napi]
+  pub async fn query(
+    &self,
+    scylla_query: &Query,
+    parameters: Option<Vec<ParameterWithMapType<'_>>>,
+  ) -> JSQueryResult {
+    let values = QueryParameter::parser(parameters.clone()).ok_or(napi::Error::new(
+      napi::Status::InvalidArg,
+      format!("Something went wrong with your query parameters. {parameters:?}"),
+    ))?;
 
-  //   let query_result = self
-  //     .session
-  //     .query(scylla_query.query.clone(), values)
-  //     .await
-  //     .map_err(|e| {
-  //       napi::Error::new(
-  //         napi::Status::InvalidArg,
-  //         // format!("Something went wrong with your query. - [{scylla_query}] - {parameters:?}\n{e}"),
-  //         format!("Something went wrong with your query. - [{scylla_query}] - TMP\n{e}"),
-  //       )
-  //     })?;
+    let query_result = self
+      .session
+      .query(scylla_query.query.clone(), values)
+      .await
+      .map_err(|e| {
+        napi::Error::new(
+          napi::Status::InvalidArg,
+          format!("Something went wrong with your query. - [{scylla_query}] - {parameters:?}\n{e}"),
+        )
+      })?;
 
-  //   QueryResult::parser(query_result)
-  // }
+    QueryResult::parser(query_result)
+  }
 
   #[napi]
   pub async fn prepare(&self, query: String) -> napi::Result<PreparedStatement> {
@@ -281,56 +227,36 @@ impl ScyllaSession {
   ///
   /// console.log(await session.execute("SELECT * FROM users"));
   /// ```
-  // #[napi]
-  // #[allow(clippy::type_complexity)]
-  // pub async fn batch(
-  //   &self,
-  //   batch: &ScyllaBatchStatement,
-  //   parameters: Vec<
-  //     Option<
-  //       Vec<
-  //         Either10<
-  //           u32,
-  //           String,
-  //           &Uuid,
-  //           BigInt,
-  //           &Duration,
-  //           &Decimal,
-  //           bool,
-  //           Vec<u32>,
-  //           &Float,
-  //           HashMap<
-  //             String,
-  //             Either9<u32, String, &Uuid, BigInt, &Duration, &Decimal, bool, Vec<u32>, &Float>,
-  //           >,
-  //         >,
-  //       >,
-  //     >,
-  //   >,
-  // ) -> JSQueryResult {
-  //   let values = parameters
-  //     .iter()
-  //     .map(|params| {
-  //       QueryParameter::parser(params.clone()).ok_or(napi::Error::new(
-  //         napi::Status::InvalidArg,
-  //         format!("Something went wrong with your batch parameters. {parameters:?}"),
-  //       ))
-  //     })
-  //     .collect::<napi::Result<Vec<_>>>()?;
+  #[napi]
+  #[allow(clippy::type_complexity)]
+  pub async fn batch(
+    &self,
+    batch: &ScyllaBatchStatement,
+    parameters: Vec<Option<Vec<ParameterWithMapType<'_>>>>,
+  ) -> JSQueryResult {
+    let values = parameters
+      .iter()
+      .map(|params| {
+        QueryParameter::parser(params.clone()).ok_or(napi::Error::new(
+          napi::Status::InvalidArg,
+          format!("Something went wrong with your batch parameters. {parameters:?}"),
+        ))
+      })
+      .collect::<napi::Result<Vec<_>>>()?;
 
-  //   let query_result = self
-  //     .session
-  //     .batch(&batch.batch, values)
-  //     .await
-  //     .map_err(|e| {
-  //       napi::Error::new(
-  //         napi::Status::InvalidArg,
-  //         format!("Something went wrong with your batch. - [{batch}] - {parameters:?}\n{e}"),
-  //       )
-  //     })?;
+    let query_result = self
+      .session
+      .batch(&batch.batch, values)
+      .await
+      .map_err(|e| {
+        napi::Error::new(
+          napi::Status::InvalidArg,
+          format!("Something went wrong with your batch. - [{batch}] - {parameters:?}\n{e}"),
+        )
+      })?;
 
-  //   QueryResult::parser(query_result)
-  // }
+    QueryResult::parser(query_result)
+  }
 
   /// Sends `USE <keyspace_name>` request on all connections\
   /// This allows to write `SELECT * FROM table` instead of `SELECT * FROM keyspace.table`\

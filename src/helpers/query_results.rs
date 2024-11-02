@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use napi::bindgen_prelude::{BigInt, Either9, Either10};
+use napi::bindgen_prelude::{BigInt, Either9, Either10, Either11};
 use scylla::frame::response::result::{ColumnType, CqlValue};
 
 use crate::types::{decimal::Decimal, duration::Duration, uuid::Uuid};
@@ -10,8 +10,9 @@ pub struct QueryResult {
 
 macro_rules! define_return_type {
     ($($t:ty),+) => {
-      type NativeTypes = Either9<$($t),+>;
-      type WithMapType = Either10<$($t),+, HashMap<String, NativeTypes>>;
+      type BaseTypes = Either9<$($t),+>;
+      type NativeTypes = Either10<$($t),+, Vec<BaseTypes>>;
+      type WithMapType = Either11<$($t),+, Vec<BaseTypes>, HashMap<String, NativeTypes>>;
       type ReturnType = napi::Result<Option<WithMapType>>;
       pub type JSQueryResult = napi::Result<Vec<HashMap<String, WithMapType>>>;
     };
@@ -115,18 +116,23 @@ impl QueryResult {
             })
             .collect::<napi::Result<Option<HashMap<String, NativeTypes>>>>();
 
-          Ok(WithMapType::J(map?.unwrap()))
+          Ok(WithMapType::K(map?.unwrap()))
         }
-        ColumnType::UserDefinedType { field_types, .. } => Ok(WithMapType::J(Self::parse_udt(
+        ColumnType::UserDefinedType { field_types, .. } => Ok(WithMapType::K(Self::parse_udt(
           column.as_udt().unwrap(),
           field_types,
         )?)),
         ColumnType::Custom(_) => Ok(WithMapType::A(
           "ColumnType Custom not supported yet".to_string(),
         )),
-        ColumnType::List(_) => Ok(WithMapType::A(
-          "ColumnType List not supported yet".to_string(),
-        )),
+        ColumnType::List(list_type) => Ok(WithMapType::J(Self::extract_base_types(
+          column
+            .as_list()
+            .unwrap()
+            .iter()
+            .map(|e| Self::parse_value(&Some(e.clone()), list_type))
+            .collect::<Vec<ReturnType>>(),
+        )?)),
         ColumnType::Set(_) => Ok(WithMapType::A(
           "ColumnType Set not supported yet".to_string(),
         )),
@@ -165,11 +171,37 @@ impl QueryResult {
       WithMapType::G(a) => Ok(NativeTypes::G(a)),
       WithMapType::H(a) => Ok(NativeTypes::H(a)),
       WithMapType::I(a) => Ok(NativeTypes::I(a)),
-      WithMapType::J(_) => Err(napi::Error::new(
+      WithMapType::J(a) => Ok(NativeTypes::J(a)),
+      WithMapType::K(_) => Err(napi::Error::new(
         napi::Status::GenericFailure,
         "Map type is not supported in this context".to_string(),
       )),
     })
     .transpose()
+  }
+
+  fn extract_base_types(return_types: Vec<ReturnType>) -> napi::Result<Vec<BaseTypes>> {
+    return_types
+      .into_iter()
+      .filter_map(|return_type| {
+        return_type.ok().and_then(|opt_with_map_type| {
+          opt_with_map_type.map(|with_map_type| match with_map_type {
+            WithMapType::A(a) => Ok(BaseTypes::A(a)),
+            WithMapType::B(b) => Ok(BaseTypes::B(b)),
+            WithMapType::C(c) => Ok(BaseTypes::C(c)),
+            WithMapType::D(d) => Ok(BaseTypes::D(d)),
+            WithMapType::E(e) => Ok(BaseTypes::E(e)),
+            WithMapType::F(f) => Ok(BaseTypes::F(f)),
+            WithMapType::G(g) => Ok(BaseTypes::G(g)),
+            WithMapType::H(h) => Ok(BaseTypes::H(h)),
+            WithMapType::I(i) => Ok(BaseTypes::I(i)),
+            WithMapType::J(_) | WithMapType::K(_) => Err(napi::Error::new(
+              napi::Status::GenericFailure,
+              "Nested collections or maps are not supported".to_string(),
+            )),
+          })
+        })
+      })
+      .collect::<napi::Result<Vec<BaseTypes>>>()
   }
 }

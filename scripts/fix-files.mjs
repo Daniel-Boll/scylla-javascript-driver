@@ -24,8 +24,9 @@ function addJSQueryResultType(filename) {
     readFileSync(filename, "utf8")
       .concat(
         `
-type NativeTypes = number | string | Uuid | bigint | Duration | Decimal;
-type WithMapType = NativeTypes | Record<string, NativeTypes>;
+type NativeTypes = number | string | Uuid | bigint | Duration | Decimal | Float | List;
+type WithMapType = NativeTypes | Record<string, NativeTypes> | NativeTypes[];
+type ParameterWithMapType = WithMapType;
 type JSQueryResultType = Record<string, WithMapType>[];
         `,
       )
