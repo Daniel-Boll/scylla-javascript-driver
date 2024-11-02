@@ -1,4 +1,4 @@
-import { Cluster, Map } from "../../index.js";
+import { Cluster, Map, Uuid } from "../../index.js";
 
 const nodes = process.env.CLUSTER_NODES?.split(",") ?? ["127.0.0.1:9042"];
 
@@ -13,10 +13,11 @@ await session.execute(
 await session.useKeyspace("maps");
 
 await session.execute(
-  "CREATE TABLE IF NOT EXISTS maps (a map<text, int>, primary key (a))",
+  "CREATE TABLE IF NOT EXISTS maps (a uuid, b map<text, int>, primary key (a))",
 );
 
-await session.execute("INSERT INTO maps (a) VALUES (?)", [
+await session.execute("INSERT INTO maps (a, b) VALUES (?, ?)", [
+  Uuid.randomV4(),
   new Map<string, number>([
     ["a", 1],
     ["b", 2],
@@ -24,5 +25,5 @@ await session.execute("INSERT INTO maps (a) VALUES (?)", [
   ]),
 ]);
 
-const results = await session.execute("SELECT a FROM maps");
+const results = await session.execute("SELECT * FROM maps");
 console.log(results);

@@ -313,12 +313,16 @@ export class Float {
   constructor(inner: number)
 }
 /** A list of any CqlType */
-export class List {
-  constructor(values: Array<ParameterWithMapType>)
+export class List<T = NativeTypes> {
+  constructor(values: T[])
+}
+/** A map of any CqlType to any CqlType */
+export class Map<T = NativeTypes, U = NativeTypes> {
+  constructor(values: Array<Array<T | U>>)
 }
 /** A list of any CqlType */
-export class Set {
-  constructor(values: Array<ParameterWithMapType>)
+export class Set<T = NativeTypes> {
+  constructor(values: T[])
 }
 export class Uuid {
   /** Generates a random UUID v4. */

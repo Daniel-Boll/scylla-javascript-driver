@@ -1,10 +1,10 @@
-use napi::bindgen_prelude::{BigInt, Either12, Either13};
+use napi::bindgen_prelude::{BigInt, Either13, Either14};
 use scylla::frame::response::result::CqlValue;
 
 use std::collections::HashMap;
 
 use crate::types::{
-  decimal::Decimal, duration::Duration, float::Float, list::List, set::Set, uuid::Uuid,
+  decimal::Decimal, duration::Duration, float::Float, list::List, map::Map, set::Set, uuid::Uuid,
   varint::Varint,
 };
 
@@ -12,13 +12,13 @@ use super::to_cql_value::ToCqlValue;
 
 macro_rules! define_expected_type {
     ($lifetime:lifetime, $($t:ty),+) => {
-      pub type ParameterNativeTypes<$lifetime> = Either12<$($t),+>;
-      pub type ParameterWithMapType<$lifetime> = Either13<$($t),+, HashMap<String, ParameterNativeTypes<$lifetime>>>;
+      pub type ParameterNativeTypes<$lifetime> = Either13<$($t),+>;
+      pub type ParameterWithMapType<$lifetime> = Either14<$($t),+, HashMap<String, ParameterNativeTypes<$lifetime>>>;
       pub type JSQueryParameters<$lifetime> = napi::Result<Vec<HashMap<String, ParameterWithMapType<$lifetime>>>>;
     };
 }
 
-define_expected_type!('a, u32, String, &'a Uuid, BigInt, &'a Duration, &'a Decimal, bool, Vec<u32>, &'a Float, &'a Varint, &'a List, &'a Set);
+define_expected_type!('a, u32, String, &'a Uuid, BigInt, &'a Duration, &'a Decimal, bool, Vec<u32>, &'a Float, &'a Varint, &'a List, &'a Set, &'a Map);
 
 impl<'a> ToCqlValue for ParameterWithMapType<'a> {
   fn to_cql_value(&self) -> CqlValue {
@@ -35,7 +35,8 @@ impl<'a> ToCqlValue for ParameterWithMapType<'a> {
       ParameterWithMapType::J(varint) => varint.to_cql_value(),
       ParameterWithMapType::K(list) => list.to_cql_value(),
       ParameterWithMapType::L(set) => set.to_cql_value(),
-      ParameterWithMapType::M(map) => CqlValue::UserDefinedType {
+      ParameterWithMapType::M(map) => map.to_cql_value(),
+      ParameterWithMapType::N(map) => CqlValue::UserDefinedType {
         // TODO: think a better way to fill this info here
         keyspace: "keyspace".to_string(),
         type_name: "type_name".to_string(),
@@ -63,6 +64,7 @@ impl<'a> ToCqlValue for ParameterNativeTypes<'a> {
       ParameterNativeTypes::I(float) => float.to_cql_value(),
       ParameterNativeTypes::K(list) => list.to_cql_value(),
       ParameterNativeTypes::L(set) => set.to_cql_value(),
+      ParameterNativeTypes::M(map) => map.to_cql_value(),
     }
   }
 }

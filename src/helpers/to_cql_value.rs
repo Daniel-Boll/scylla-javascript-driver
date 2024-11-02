@@ -2,7 +2,7 @@ use napi::bindgen_prelude::BigInt;
 use scylla::frame::response::result::CqlValue;
 
 use crate::types::{
-  decimal::Decimal, duration::Duration, float::Float, list::List, set::Set, uuid::Uuid,
+  decimal::Decimal, duration::Duration, float::Float, list::List, map::Map, set::Set, uuid::Uuid,
   varint::Varint,
 };
 
@@ -75,6 +75,12 @@ impl ToCqlValue for &List {
 impl ToCqlValue for &Set {
   fn to_cql_value(&self) -> CqlValue {
     CqlValue::Set(self.inner.clone())
+  }
+}
+
+impl ToCqlValue for &Map {
+  fn to_cql_value(&self) -> CqlValue {
+    CqlValue::Map(self.inner.clone())
   }
 }
 

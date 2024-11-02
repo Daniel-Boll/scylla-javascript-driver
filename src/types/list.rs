@@ -29,7 +29,7 @@ impl From<&List> for Vec<CqlValue> {
 
 #[napi]
 impl List {
-  #[napi(constructor)]
+  #[napi(constructor, ts_args_type = "values: T[]")]
   pub fn new_list(values: Vec<ParameterWithMapType>) -> List {
     let inner = values.into_iter().map(|v| v.to_cql_value()).collect();
     List { inner }

@@ -29,8 +29,8 @@ impl From<&Set> for Vec<CqlValue> {
 
 #[napi]
 impl Set {
-  #[napi(constructor)]
-  pub fn new_list(values: Vec<ParameterWithMapType>) -> Set {
+  #[napi(constructor, ts_args_type = "values: T[]")]
+  pub fn new_set(values: Vec<ParameterWithMapType>) -> Set {
     let inner = values.into_iter().map(|v| v.to_cql_value()).collect();
     Set { inner }
   }
