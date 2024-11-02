@@ -122,9 +122,6 @@ impl QueryResult {
           column.as_udt().unwrap(),
           field_types,
         )?)),
-        ColumnType::Custom(_) => Ok(WithMapType::A(
-          "ColumnType Custom not supported yet".to_string(),
-        )),
         ColumnType::List(list_type) => Ok(WithMapType::J(Self::extract_base_types(
           column
             .as_list()
@@ -133,6 +130,9 @@ impl QueryResult {
             .map(|e| Self::parse_value(&Some(e.clone()), list_type))
             .collect::<Vec<ReturnType>>(),
         )?)),
+        ColumnType::Custom(_) => Ok(WithMapType::A(
+          "ColumnType Custom not supported yet".to_string(),
+        )),
         ColumnType::Set(_) => Ok(WithMapType::A(
           "ColumnType Set not supported yet".to_string(),
         )),
