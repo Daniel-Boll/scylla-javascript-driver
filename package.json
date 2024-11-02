@@ -1,6 +1,6 @@
 {
   "name": "@lambda-group/scylladb",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver",
   "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
   "author": {
