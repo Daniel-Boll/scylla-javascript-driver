@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use napi::bindgen_prelude::Either3;
-use scylla::transport::ClusterData;
 use scylla::transport::topology::{Keyspace, MaterializedView, Strategy, Table};
+use scylla::transport::ClusterData;
 
 // ============= ClusterData ============= //
 #[napi]
