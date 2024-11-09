@@ -6,8 +6,8 @@ use crate::query::scylla_prepared_statement::PreparedStatement;
 use crate::query::scylla_query::Query;
 use crate::types::tracing::TracingReturn;
 use crate::types::uuid::Uuid;
-use napi::Either;
 use napi::bindgen_prelude::Either3;
+use napi::Either;
 use scylla::statement::query::Query as ScyllaQuery;
 
 use super::metrics;

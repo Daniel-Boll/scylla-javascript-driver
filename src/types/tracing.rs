@@ -15,7 +15,7 @@ impl Serialize for CqlTimestampWrapper {
   where
     S: serde::Serializer,
   {
-    serializer.serialize_i64(self.0.0)
+    serializer.serialize_i64(self.0 .0)
   }
 }
 

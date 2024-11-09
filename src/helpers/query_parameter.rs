@@ -1,7 +1,7 @@
 use scylla::serialize::{
-  RowWriter, SerializationError,
   row::{RowSerializationContext, SerializeRow},
   value::SerializeCql,
+  RowWriter, SerializationError,
 };
 
 use super::{cql_value_bridge::ParameterWithMapType, to_cql_value::ToCqlValue};
