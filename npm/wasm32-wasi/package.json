@@ -1,0 +1,37 @@
+{
+  "name": "@lambda-group/scylladb-wasm32-wasi",
+  "version": "0.7.0",
+  "cpu": [
+    "wasm32"
+  ],
+  "main": "scylladb.wasi.cjs",
+  "files": [
+    "scylladb.wasm32-wasi.wasm",
+    "scylladb.wasi.cjs",
+    "scylladb.wasi-browser.js",
+    "wasi-worker.mjs",
+    "wasi-worker-browser.mjs"
+  ],
+  "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
+  "keywords": [
+    "napi-rs",
+    "NAPI",
+    "N-API",
+    "Rust",
+    "node-addon",
+    "node-addon-api"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver",
+  "browser": "scylladb.wasi-browser.js",
+  "dependencies": {
+    "@napi-rs/wasm-runtime": "^0.2.5"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "@lambda-group/scylladb-linux-arm-gnueabihf",
+  "version": "0.7.0",
+  "cpu": [
+    "arm"
+  ],
+  "main": "scylladb.linux-arm-gnueabihf.node",
+  "files": [
+    "scylladb.linux-arm-gnueabihf.node"
+  ],
+  "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
+  "keywords": [
+    "napi-rs",
+    "NAPI",
+    "N-API",
+    "Rust",
+    "node-addon",
+    "node-addon-api"
+  ],
+  "author": {
+    "name": "Daniel Boll",
+    "email": "danielboll.dev@proton.me",
+    "url": "https://daniel-boll.me"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">= 20"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver",
+  "os": [
+    "linux"
+  ]
+}
