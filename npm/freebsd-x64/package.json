@@ -1,14 +1,14 @@
 {
   "name": "@lambda-group/scylladb-freebsd-x64",
-  "version": "1.1.1",
+  "version": "0.7.0",
   "cpu": [
     "x64"
   ],
-  "main": "package-template.freebsd-x64.node",
+  "main": "scylladb.freebsd-x64.node",
   "files": [
-    "package-template.freebsd-x64.node"
+    "scylladb.freebsd-x64.node"
   ],
-  "description": "Template project for writing node package with napi-rs",
+  "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
   "keywords": [
     "napi-rs",
     "NAPI",
@@ -26,7 +26,7 @@
     "access": "public"
   },
   "repository": {
-    "url": "git+ssh://git@github.com/napi-rs/package-template-pnpm.git",
+    "url": "git+ssh://git@github.com/napi-rs/scylladb-pnpm.git",
     "type": "git"
   },
   "os": [

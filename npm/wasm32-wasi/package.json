@@ -1,18 +1,18 @@
 {
   "name": "@lambda-group/scylladb-wasm32-wasi",
-  "version": "1.1.1",
+  "version": "0.7.0",
   "cpu": [
     "wasm32"
   ],
-  "main": "package-template.wasi.cjs",
+  "main": "scylladb.wasi.cjs",
   "files": [
-    "package-template.wasm32-wasi.wasm",
-    "package-template.wasi.cjs",
-    "package-template.wasi-browser.js",
+    "scylladb.wasm32-wasi.wasm",
+    "scylladb.wasi.cjs",
+    "scylladb.wasi-browser.js",
     "wasi-worker.mjs",
     "wasi-worker-browser.mjs"
   ],
-  "description": "Template project for writing node package with napi-rs",
+  "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
   "keywords": [
     "napi-rs",
     "NAPI",
@@ -29,11 +29,8 @@
     "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
-  "repository": {
-    "url": "git+ssh://git@github.com/napi-rs/package-template-pnpm.git",
-    "type": "git"
-  },
-  "browser": "package-template.wasi-browser.js",
+  "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver",
+  "browser": "scylladb.wasi-browser.js",
   "dependencies": {
     "@napi-rs/wasm-runtime": "^0.2.5"
   }
