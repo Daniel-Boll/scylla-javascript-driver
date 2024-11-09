@@ -31,15 +31,15 @@ jobs:
       should_publish: ${{ steps.check-commit.outputs.should_publish }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Check commit message for version
         id: check-commit
         run: |
           commit_msg=$(git log --format=%B -n 1)
           if [[ $commit_msg =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::set-output name=should_publish::true"
+            echo "should_publish=true" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=should_publish::false"
+            echo "should_publish=false" >> $GITHUB_OUTPUT
           fi
   build:
     if: needs.check-version-in-commit.outputs.should_publish == 'true'
