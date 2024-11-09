@@ -1,8 +1,11 @@
-#![deny(clippy::all)]
+#![allow(dead_code)]
 
-use napi_derive::napi;
+#[macro_use]
+extern crate napi_derive;
 
-#[napi]
-pub fn plus_100(input: u32) -> u32 {
-  input + 100
-}
+pub mod cluster;
+pub mod error;
+pub mod helpers;
+pub mod query;
+pub mod session;
+pub mod types;

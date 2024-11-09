@@ -1,85 +1,78 @@
-# `@napi-rs/package-template`
+<div align="center">
+  
+[![ScyllaDB Unnoficial Discord Server](https://img.shields.io/badge/ScyllaDB_Developers-Discord_Server-4C388C)](https://discord.gg/CzCT4cyRrr)
 
-![https://github.com/napi-rs/package-template/actions](https://github.com/napi-rs/package-template/workflows/CI/badge.svg)
+</div>
 
-> Template project for writing node packages with napi-rs.
+<div align="center">
+  <a href="https://github.com/daniel-boll/scylla-javascript-driver">
+    <img src="assets/logo.png" alt="Scylla Nodejs Driver" width="640" />
+  </a>
 
-# Usage
+  <h4>🚀 ScyllaDB NodeJS Driver 🧪🔧</h4>
+</div>
 
-1. Click **Use this template**.
-2. **Clone** your project.
-3. Run `pnpm install` to install dependencies.
-4. Run `npx napi rename -n [name]` command under the project folder to rename your package.
+## ⚠️ Disclaimer ⚠️
 
-## Install this test package
+This repository and the associated npm package are currently in a 🐣 pre-release state and are being used for testing 🧪 purposes. They are subject to change without notice 📝. Users are encouraged to use this driver with caution ❗ and not in production environments until the official release.
 
-```
-pnpm add @napi-rs/package-template
-```
+## 🚀 Getting Started 🚀
 
-## Usage
+These instructions will get you a copy of the project up and running 🏃 on your local machine for development and testing purposes.
 
-### Build
+### 📋 Prerequisites 📋
 
-After `pnpm build` command, you can see `package-template.[darwin|win32|linux].node` file in project root. This is the native addon built from [lib.rs](./src/lib.rs).
+- Docker: We use Docker 🐳 to run the Scylla database easily without the need for a complex local setup.
+- Node.js: Make sure you have Node.js installed on your system to run JavaScript code.
 
-### Test
+### 🌟 Quickstart 🌟
 
-With [ava](https://github.com/avajs/ava), run `pnpm test` to testing native addon. You can also switch to another testing framework if you want.
+1. **Start ScyllaDB in Docker:**
 
-### CI
+   Run a ScyllaDB instance using the following Docker command:
 
-With GitHub Actions, each commit and pull request will be built and tested automatically in [`node@18`, `node@20`] x [`macOS`, `Linux`, `Windows`] matrix. You will never be afraid of the native addon broken in these platforms.
+   ```bash
+   docker run --name scylladb -d --rm -it -p 9042:9042 scylladb/scylla --smp 2
+   ```
 
-### Release
+   This command pulls the Scylla image if it's not already present on your system, and starts a new 🌟 container with the Scylla database.
 
-Release native package is very difficult in old days. Native packages may ask developers who use it to install `build toolchain` like `gcc/llvm`, `node-gyp` or something more.
+2. **Use the JavaScript Driver:**
 
-With `GitHub actions`, we can easily prebuild a `binary` for major platforms. And with `N-API`, we should never be afraid of **ABI Compatible**.
+   Here's a simple script to connect to the database and execute a query:
 
-The other problem is how to deliver prebuild `binary` to users. Downloading it in `postinstall` script is a common way that most packages do it right now. The problem with this solution is it introduced many other packages to download binary that has not been used by `runtime codes`. The other problem is some users may not easily download the binary from `GitHub/CDN` if they are behind a private network (But in most cases, they have a private NPM mirror).
+   ```javascript
+   import { Cluster } from "@lambda-group/scylladb";
 
-In this package, we choose a better way to solve this problem. We release different `npm packages` for different platforms. And add it to `optionalDependencies` before releasing the `Major` package to npm.
+   const cluster = new Cluster({
+     nodes: ["127.0.0.1:9042"],
+   });
 
-`NPM` will choose which native package should download from `registry` automatically. You can see [npm](./npm) dir for details. And you can also run `pnpm add @napi-rs/package-template` to see how it works.
+   const session = await cluster.connect("system_schema");
 
-## Develop requirements
+   const result = await session
+     .execute("SELECT * FROM scylla_tables limit ?", [1])
+     .catch(console.error);
 
-- Install the latest `Rust`
-- Install `Node.js@16+` which fully supported `Node-API`
-- Run `corepack enable`
+   console.log(result);
+   ```
 
-## Test in local
+   This script connects to the ScyllaDB instance running on your machine, performs a query, and logs the result.
 
-- pnpm
-- pnpm build
-- pnpm test
+### 📥 Installing 📥
 
-And you will see:
+To install this package, use the following command:
 
 ```bash
-$ ava --verbose
-
-  ✔ sync function from native code
-  ✔ sleep function from native code (201ms)
-  ─
-
-  2 tests passed
-✨  Done in 1.12s.
+npm install @lambda-group/scylladb@latest
 ```
 
-## Release package
+## 📚 Examples 📚
 
-Ensure you have set your **NPM_TOKEN** in the `GitHub` project setting.
+Reference wise you can guide yourself through the [examples/](https://github.com/Daniel-Boll/scylla-javascript-driver/tree/main/examples) folder in the repo.
 
-In `Settings -> Secrets`, add **NPM_TOKEN** into it.
+## 🙏 Acknowledgments 🙏
 
-When you want to release the package:
-
-```
-npm version [<newversion> | major | minor | patch | premajor | preminor | prepatch | prerelease [--preid=<prerelease-id>] | from-git]
-
-git push
-```
-
-GitHub actions will do the rest job for you.
+- Thanks to the developers of ScyllaDB for creating such a high-performance database.
+- Thanks to the Rust community for providing the robust `scylla` crate.
+- Thanks to the `napi-rs` project for enabling efficient Rust and Node.js integrations.

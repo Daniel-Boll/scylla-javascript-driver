@@ -150,6 +150,7 @@ dist
 
 *.node
 *.wasm
+scylladb.wasi*
 
 ### Node Patch ###
 # Serverless Webpack directories

@@ -1,0 +1,35 @@
+{
+  "name": "@lambda-group/scylladb-darwin-x64",
+  "version": "1.1.1",
+  "cpu": [
+    "x64"
+  ],
+  "main": "package-template.darwin-x64.node",
+  "files": [
+    "package-template.darwin-x64.node"
+  ],
+  "description": "Template project for writing node package with napi-rs",
+  "keywords": [
+    "napi-rs",
+    "NAPI",
+    "N-API",
+    "Rust",
+    "node-addon",
+    "node-addon-api"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": {
+    "url": "git+ssh://git@github.com/napi-rs/package-template-pnpm.git",
+    "type": "git"
+  },
+  "os": [
+    "darwin"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "@lambda-group/scylladb-wasm32-wasi",
+  "version": "1.1.1",
+  "cpu": [
+    "wasm32"
+  ],
+  "main": "package-template.wasi.cjs",
+  "files": [
+    "package-template.wasm32-wasi.wasm",
+    "package-template.wasi.cjs",
+    "package-template.wasi-browser.js",
+    "wasi-worker.mjs",
+    "wasi-worker-browser.mjs"
+  ],
+  "description": "Template project for writing node package with napi-rs",
+  "keywords": [
+    "napi-rs",
+    "NAPI",
+    "N-API",
+    "Rust",
+    "node-addon",
+    "node-addon-api"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": {
+    "url": "git+ssh://git@github.com/napi-rs/package-template-pnpm.git",
+    "type": "git"
+  },
+  "browser": "package-template.wasi-browser.js",
+  "dependencies": {
+    "@napi-rs/wasm-runtime": "^0.2.5"
+  }
+}
