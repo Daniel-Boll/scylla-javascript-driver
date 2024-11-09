@@ -1,6 +1,6 @@
 {
   "name": "@lambda-group/scylladb",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
   "main": "index.js",
   "types": "index.d.ts",
