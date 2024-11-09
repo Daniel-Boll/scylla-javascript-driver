@@ -12,9 +12,7 @@ await session.execute(
 );
 await session.useKeyspace("uuids");
 
-await session.execute(
-  "CREATE TABLE IF NOT EXISTS uuids (a uuid, primary key (a))",
-);
+await session.execute("CREATE TABLE IF NOT EXISTS uuids (a uuid, primary key (a))");
 
 await session.execute("INSERT INTO uuids (a) VALUES (?)", [Uuid.randomV4()]);
 

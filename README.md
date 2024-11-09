@@ -1,5 +1,5 @@
 <div align="center">
-  
+
 [![ScyllaDB Unnoficial Discord Server](https://img.shields.io/badge/ScyllaDB_Developers-Discord_Server-4C388C)](https://discord.gg/CzCT4cyRrr)
 
 </div>
@@ -50,9 +50,7 @@ These instructions will get you a copy of the project up and running 🏃 on you
 
    const session = await cluster.connect("system_schema");
 
-   const result = await session
-     .execute("SELECT * FROM scylla_tables limit ?", [1])
-     .catch(console.error);
+   const result = await session.execute("SELECT * FROM scylla_tables limit ?", [1]).catch(console.error);
 
    console.log(result);
    ```

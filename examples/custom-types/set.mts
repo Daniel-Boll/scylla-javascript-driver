@@ -12,14 +12,9 @@ await session.execute(
 );
 await session.useKeyspace("sets");
 
-await session.execute(
-  "CREATE TABLE IF NOT EXISTS sets (a uuid, b set<int>, primary key (a))",
-);
+await session.execute("CREATE TABLE IF NOT EXISTS sets (a uuid, b set<int>, primary key (a))");
 
-await session.execute("INSERT INTO sets (a, b) VALUES (?, ?)", [
-  Uuid.randomV4(),
-  new Set<number>([1, 2, 3, 1]),
-]);
+await session.execute("INSERT INTO sets (a, b) VALUES (?, ?)", [Uuid.randomV4(), new Set<number>([1, 2, 3, 1])]);
 
 const results = await session.execute("SELECT * FROM sets");
 console.log(results);

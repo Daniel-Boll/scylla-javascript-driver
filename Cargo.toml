@@ -2,13 +2,14 @@
 authors = ["Daniel Boll <danielboll.dev@proton.me>"]
 edition = "2021"
 name = "scylladb-driver"
-version = "0.0.0"
+version = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-# Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
 napi = { version = "2", default-features = false, features = [
   "napi8",
   "async",

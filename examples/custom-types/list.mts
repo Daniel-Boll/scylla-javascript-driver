@@ -12,15 +12,10 @@ await session.execute(
 );
 await session.useKeyspace("lists");
 
-await session.execute(
-  "CREATE TABLE IF NOT EXISTS lists (a uuid, b list<int>, primary key (a))",
-);
+await session.execute("CREATE TABLE IF NOT EXISTS lists (a uuid, b list<int>, primary key (a))");
 
 // NOTE: driver is not throwing errors if the return of the function is not used.
-await session.execute("INSERT INTO lists (a, b) VALUES (?, ?)", [
-  Uuid.randomV4(),
-  new List<number>([1, 2, 3]),
-]);
+await session.execute("INSERT INTO lists (a, b) VALUES (?, ?)", [Uuid.randomV4(), new List<number>([1, 2, 3])]);
 
 const results = await session.execute("SELECT * FROM lists");
 console.log(results);

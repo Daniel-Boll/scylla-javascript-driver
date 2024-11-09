@@ -1,9 +1,6 @@
 {
   "name": "@lambda-group/scylladb-win32-x64-msvc",
-  "version": "0.6.4",
-  "os": [
-    "win32"
-  ],
+  "version": "0.7.0",
   "cpu": [
     "x64"
   ],
@@ -12,14 +9,24 @@
     "scylladb.win32-x64-msvc.node"
   ],
   "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
-  "author": {
-    "name": "Daniel Boll",
-    "email": "danielboll.dev@proton.me",
-    "url": "https://daniel-boll.me"
-  },
+  "keywords": [
+    "napi-rs",
+    "NAPI",
+    "N-API",
+    "Rust",
+    "node-addon",
+    "node-addon-api"
+  ],
   "license": "MIT",
   "engines": {
     "node": ">= 10"
   },
-  "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver"
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver",
+  "os": [
+    "win32"
+  ]
 }

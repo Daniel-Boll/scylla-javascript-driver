@@ -12,9 +12,7 @@ await session.execute(
 );
 await session.useKeyspace("bigints");
 
-await session.execute(
-  "CREATE TABLE IF NOT EXISTS bigints (a bigint, primary key (a))",
-);
+await session.execute("CREATE TABLE IF NOT EXISTS bigints (a bigint, primary key (a))");
 
 await session.execute("INSERT INTO bigints (a) VALUES (?)", [1238773128n]);
 

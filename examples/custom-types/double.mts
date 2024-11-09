@@ -12,13 +12,10 @@ await session.execute(
 );
 await session.useKeyspace("double");
 
-await session.execute(
-  "CREATE TABLE IF NOT EXISTS double (a double, primary key (a))",
-);
+await session.execute("CREATE TABLE IF NOT EXISTS double (a double, primary key (a))");
 
 const input = new Double(1.1127830921);
-const _ = await session.execute("INSERT INTO double (a) VALUES (?)", [input]);
-console.log(_);
+await session.execute("INSERT INTO double (a) VALUES (?)", [input]);
 
 const results = await session.execute("SELECT a FROM double");
-console.log(`${input} -> ${results[0].a}`);
+console.log(results);

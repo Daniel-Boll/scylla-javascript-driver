@@ -5,7 +5,7 @@ use openssl::ssl::{SslContextBuilder, SslFiletype};
 
 use crate::{
   cluster::{
-    cluster_config::{compression::Compression, ClusterConfig},
+    cluster_config::{ClusterConfig, compression::Compression},
     execution_profile::ExecutionProfile,
   },
   session::scylla_session::ScyllaSession,

@@ -12,12 +12,8 @@ await session.execute(
 );
 await session.useKeyspace("udt");
 
-await session.execute(
-  "CREATE TYPE IF NOT EXISTS address (street text, neighbor text)",
-);
-await session.execute(
-  "CREATE TABLE IF NOT EXISTS user (name text, address address, primary key (name))",
-);
+await session.execute("CREATE TYPE IF NOT EXISTS address (street text, neighbor text)");
+await session.execute("CREATE TABLE IF NOT EXISTS user (name text, address address, primary key (name))");
 
 interface User {
   name: string;
@@ -35,10 +31,7 @@ const user: User = {
   },
 };
 
-await session.execute("INSERT INTO user (name, address) VALUES (?, ?)", [
-  user.name,
-  user.address,
-]);
+await session.execute("INSERT INTO user (name, address) VALUES (?, ?)", [user.name, user.address]);
 
 const users = (await session.execute("SELECT * FROM user")) as User[];
 console.log(users);

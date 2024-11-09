@@ -1,59 +1,118 @@
 {
   "name": "@lambda-group/scylladb",
   "version": "0.7.0",
-  "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver",
   "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "browser": "browser.js",
+  "repository": "https://github.com/Daniel-Boll/scylla-javascript-driver",
   "author": {
     "name": "Daniel Boll",
     "email": "danielboll.dev@proton.me",
     "url": "https://daniel-boll.me"
   },
-  "main": "index.js",
-  "types": "index.d.ts",
-  "scripts": {
-    "artifacts": "napi artifacts",
-    "build": "napi build --platform --release --pipe \"node ./scripts/fix-files.mjs\"",
-    "build:debug": "napi build --platform --pipe \"node ./scripts/fix-files.mjs\"",
-    "prepublishOnly": "napi prepublish -t npm",
-    "test": "NODE_OPTIONS='--import tsx' ava",
-    "universal": "napi universal",
-    "version": "napi version"
-  },
+  "license": "MIT",
+  "keywords": [
+    "napi-rs",
+    "NAPI",
+    "N-API",
+    "Rust",
+    "node-addon",
+    "node-addon-api"
+  ],
+  "files": [
+    "index.d.ts",
+    "index.js",
+    "browser.js"
+  ],
   "napi": {
     "binaryName": "scylladb",
     "targets": [
-      "x86_64-unknown-linux-gnu",
-      "aarch64-apple-darwin",
-      "universal-apple-darwin",
       "x86_64-apple-darwin",
-      "x86_64-unknown-linux-musl"
+      "aarch64-apple-darwin",
+      "x86_64-unknown-linux-gnu",
+      "x86_64-unknown-linux-musl",
+      "aarch64-unknown-linux-gnu",
+      "armv7-unknown-linux-gnueabihf",
+      "aarch64-linux-android",
+      "aarch64-unknown-linux-musl",
+      "armv7-linux-androideabi"
     ]
   },
-  "license": "MIT",
+  "engines": {
+    "node": ">= 20"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "scripts": {
+    "artifacts": "napi artifacts",
+    "bench": "node --import @swc-node/register/esm-register benchmark/bench.ts",
+    "build": "napi build --platform --release --pipe \"node ./scripts/fix-files.mjs\"",
+    "build:debug": "napi build --platform --pipe \"node ./scripts/fix-files.mjs\"",
+    "format": "run-p format:prettier format:rs format:toml",
+    "format:prettier": "prettier . -w",
+    "format:toml": "taplo format",
+    "format:rs": "cargo fmt",
+    "lint": "oxlint",
+    "prepublishOnly": "napi prepublish -t npm",
+    "test": "ava",
+    "version": "napi version"
+  },
   "devDependencies": {
-    "@napi-rs/cli": "3.0.0-alpha.63",
-    "@swc-node/register": "^1.10.0",
-    "@swc/core": "^1.6.6",
-    "@types/node": "^20.14.9",
+    "@emnapi/core": "^1.2.0",
+    "@emnapi/runtime": "^1.2.0",
+    "@napi-rs/cli": "3.0.0-alpha.64",
+    "@napi-rs/wasm-runtime": "^0.2.4",
+    "@swc-node/register": "^1.10.6",
+    "@swc/core": "^1.6.13",
+    "@taplo/cli": "^0.7.0",
+    "@tybys/wasm-util": "^0.9.0",
+    "@types/node": "^22.9.0",
     "ava": "^6.1.3",
-    "tsx": "^4.16.0",
-    "typescript": "^5.5.2"
+    "chalk": "^5.3.0",
+    "emnapi": "^1.2.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.7",
+    "npm-run-all2": "^7.0.0",
+    "oxlint": "^0.11.0",
+    "prettier": "^3.3.3",
+    "tinybench": "^3.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.5.3"
+  },
+  "lint-staged": {
+    "*.@(js|ts|tsx)": [
+      "oxlint --fix"
+    ],
+    "*.@(js|ts|tsx|yml|yaml|md|json)": [
+      "prettier --write"
+    ],
+    "*.toml": [
+      "taplo format"
+    ]
   },
   "ava": {
-    "require": [
-      "@swc-node/register"
-    ],
-    "extensions": [
-      "ts"
-    ],
+    "extensions": {
+      "ts": "module"
+    },
     "timeout": "2m",
     "workerThreads": false,
     "environmentVariables": {
       "TS_NODE_PROJECT": "./tsconfig.json"
-    }
+    },
+    "nodeArguments": [
+      "--import",
+      "@swc-node/register/esm-register"
+    ]
   },
-  "engines": {
-    "node": ">= 10"
+  "prettier": {
+    "printWidth": 120,
+    "semi": true,
+    "trailingComma": "all",
+    "singleQuote": false,
+    "arrowParens": "always"
   },
-  "packageManager": "yarn@4.3.1"
+  "packageManager": "pnpm@9.12.3"
 }

@@ -12,22 +12,14 @@ await session.execute(
 );
 await session.useKeyspace("prepared");
 
-await session.execute(
-  "CREATE TABLE IF NOT EXISTS prepared (a int, b int, c text, primary key (a, b))",
-);
+await session.execute("CREATE TABLE IF NOT EXISTS prepared (a int, b int, c text, primary key (a, b))");
 
-const prepared = await session.prepare(
-  "INSERT INTO basic (a, b, c) VALUES (?, 7, ?)",
-);
+const prepared = await session.prepare("INSERT INTO basic (a, b, c) VALUES (?, 7, ?)");
 await session.execute(prepared, [42, "I'm prepared!"]);
 await session.execute(prepared, [43, "I'm prepared 2!"]);
 await session.execute(prepared, [44, "I'm prepared 3!"]);
 
-await session.execute(
-  "INSERT INTO basic (a, b, c) VALUES (?, 7, ?)",
-  [45, "I'm also prepared"],
-  { prepare: true },
-);
+await session.execute("INSERT INTO basic (a, b, c) VALUES (?, 7, ?)", [45, "I'm also prepared"], { prepare: true });
 
 const metrics = session.metrics();
 console.log(`Queries requested: ${metrics.getQueriesNum()}`);
