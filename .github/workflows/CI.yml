@@ -10,8 +10,8 @@ permissions:
 "on":
   push:
     # TMP: While testing the new template
-    # branches:
-    #   - main
+    branches:
+      - migrate-to-pnpm
     tags-ignore:
       - "**"
     paths-ignore:
