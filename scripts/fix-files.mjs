@@ -3,18 +3,9 @@ import { readFileSync, writeFileSync } from "node:fs";
 function addGenericTypes(filename) {
   const content = readFileSync(filename, "utf8");
   const updatedContent = content
-    .replace(
-      /export declare class List\b(.*){/,
-      "export declare class List<T = NativeTypes>$1{",
-    )
-    .replace(
-      /export declare class Map\b(.*){/,
-      "export declare class Map<T = NativeTypes, U = NativeTypes>$1{",
-    )
-    .replace(
-      /export declare class Set\b(.*){/,
-      "export declare class Set<T = NativeTypes>$1{",
-    );
+    .replace(/export declare class List\b(.*){/, "export declare class List<T = NativeTypes>$1{")
+    .replace(/export declare class Map\b(.*){/, "export declare class Map<T = NativeTypes, U = NativeTypes>$1{")
+    .replace(/export declare class Set\b(.*){/, "export declare class Set<T = NativeTypes>$1{");
 
   writeFileSync(filename, updatedContent);
 }

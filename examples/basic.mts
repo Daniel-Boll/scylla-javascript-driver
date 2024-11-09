@@ -12,20 +12,12 @@ await session.execute(
 );
 await session.useKeyspace("basic");
 
-await session.execute(
-  "CREATE TABLE IF NOT EXISTS basic (a int, b int, c text, primary key (a, b))",
-);
+await session.execute("CREATE TABLE IF NOT EXISTS basic (a int, b int, c text, primary key (a, b))");
 
 await session.execute("INSERT INTO basic (a, b, c) VALUES (1, 2, 'abc')");
-await session.execute("INSERT INTO basic (a, b, c) VALUES (?, ?, ?)", [
-  3,
-  4,
-  "def",
-]);
+await session.execute("INSERT INTO basic (a, b, c) VALUES (?, ?, ?)", [3, 4, "def"]);
 
-const prepared = await session.prepare(
-  "INSERT INTO basic (a, b, c) VALUES (?, 7, ?)",
-);
+const prepared = await session.prepare("INSERT INTO basic (a, b, c) VALUES (?, 7, ?)");
 await session.execute(prepared, [42, "I'm prepared!"]);
 await session.execute(prepared, [43, "I'm prepared 2!"]);
 await session.execute(prepared, [44, "I'm prepared 3!"]);

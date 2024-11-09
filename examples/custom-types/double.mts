@@ -12,9 +12,7 @@ await session.execute(
 );
 await session.useKeyspace("double");
 
-await session.execute(
-  "CREATE TABLE IF NOT EXISTS double (a double, primary key (a))",
-);
+await session.execute("CREATE TABLE IF NOT EXISTS double (a double, primary key (a))");
 
 const input = new Double(1.1127830921);
 await session.execute("INSERT INTO double (a) VALUES (?)", [input]);

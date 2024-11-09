@@ -12,13 +12,9 @@ await session.execute(
 );
 await session.useKeyspace("varints");
 
-await session.execute(
-  "CREATE TABLE IF NOT EXISTS varints (a varint, primary key (a))",
-);
+await session.execute("CREATE TABLE IF NOT EXISTS varints (a varint, primary key (a))");
 
-await session.execute("INSERT INTO varints (a) VALUES (?)", [
-  new Varint([0x00, 0x01, 0x02]),
-]);
+await session.execute("INSERT INTO varints (a) VALUES (?)", [new Varint([0x00, 0x01, 0x02])]);
 
 const results = await session.execute("SELECT a FROM varints");
 console.log(results);

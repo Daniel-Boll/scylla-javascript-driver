@@ -12,9 +12,7 @@ await session.execute(
 );
 await session.useKeyspace("maps");
 
-await session.execute(
-  "CREATE TABLE IF NOT EXISTS maps (a uuid, b map<text, int>, primary key (a))",
-);
+await session.execute("CREATE TABLE IF NOT EXISTS maps (a uuid, b map<text, int>, primary key (a))");
 
 await session.execute("INSERT INTO maps (a, b) VALUES (?, ?)", [
   Uuid.randomV4(),

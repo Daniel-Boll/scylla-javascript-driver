@@ -109,9 +109,9 @@
   },
   "prettier": {
     "printWidth": 120,
-    "semi": false,
+    "semi": true,
     "trailingComma": "all",
-    "singleQuote": true,
+    "singleQuote": false,
     "arrowParens": "always"
   },
   "packageManager": "pnpm@9.12.3"

@@ -12,9 +12,7 @@ await session.execute(
 );
 await session.useKeyspace("floats");
 
-await session.execute(
-  "CREATE TABLE IF NOT EXISTS floats (a float, primary key (a))",
-);
+await session.execute("CREATE TABLE IF NOT EXISTS floats (a float, primary key (a))");
 
 const input = new Float(1.1127830921);
 await session.execute("INSERT INTO floats (a) VALUES (?)", [input]);

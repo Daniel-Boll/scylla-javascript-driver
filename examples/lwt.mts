@@ -1,4 +1,4 @@
-import { Cluster, Consistency, Query, SerialConsistency } from "../index.js"
+import { Cluster, Consistency, Query, SerialConsistency } from "../index.js";
 
 const nodes = process.env.CLUSTER_NODES?.split(",") ?? ["127.0.0.1:9042"];
 
@@ -6,7 +6,9 @@ const cluster = new Cluster({ nodes });
 
 const session = await cluster.connect();
 
-await session.execute("CREATE KEYSPACE IF NOT EXISTS lwt WITH REPLICATION = {'class' : 'NetworkTopologyStrategy', 'replication_factor' : 1}");
+await session.execute(
+  "CREATE KEYSPACE IF NOT EXISTS lwt WITH REPLICATION = {'class' : 'NetworkTopologyStrategy', 'replication_factor' : 1}",
+);
 await session.execute("CREATE TABLE IF NOT EXISTS lwt.tab (a int PRIMARY KEY)");
 
 const query = new Query("INSERT INTO lwt.tab (a) VALUES(?) IF NOT EXISTS");
