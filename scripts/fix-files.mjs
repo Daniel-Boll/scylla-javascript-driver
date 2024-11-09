@@ -31,6 +31,12 @@ const customInspectSymbol = Symbol.for('nodejs.util.inspect.custom')
 nativeBinding.Uuid.prototype[customInspectSymbol]     = function () { return this.toString(); }
 nativeBinding.Duration.prototype[customInspectSymbol] = function () { return this.toString(); }
 nativeBinding.Decimal.prototype[customInspectSymbol]  = function () { return this.toString(); }
+nativeBinding.Float.prototype[customInspectSymbol]  = function () { return this.toString(); }
+nativeBinding.Double.prototype[customInspectSymbol]  = function () { return this.toString(); }
+nativeBinding.List.prototype[customInspectSymbol]  = function () { return this.toString(); }
+nativeBinding.Set.prototype[customInspectSymbol]  = function () { return this.toString(); }
+nativeBinding.Map.prototype[customInspectSymbol]  = function () { return this.toString(); }
+nativeBinding.Varint.prototype[customInspectSymbol]  = function () { return this.toString(); }
 `,
       )
       .trim(),

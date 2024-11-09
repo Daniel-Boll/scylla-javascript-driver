@@ -34,4 +34,10 @@ impl Set {
     let inner = values.into_iter().map(|v| v.to_cql_value()).collect();
     Set { inner }
   }
+
+  #[napi]
+  #[allow(clippy::inherent_to_string)]
+  pub fn to_string(&self) -> String {
+    format!("{:?}", self.inner)
+  }
 }

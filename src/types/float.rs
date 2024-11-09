@@ -5,24 +5,18 @@
 #[napi]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Float {
-  pub(crate) inner: f64,
+  pub(crate) inner: f32,
 }
 
-impl From<f64> for Float {
-  fn from(inner: f64) -> Self {
+impl From<f32> for Float {
+  fn from(inner: f32) -> Self {
     Self { inner }
-  }
-}
-
-impl From<Float> for f64 {
-  fn from(float: Float) -> Self {
-    float.inner
   }
 }
 
 impl From<&Float> for f32 {
   fn from(float: &Float) -> Self {
-    float.inner as f32
+    float.inner
   }
 }
 
@@ -30,6 +24,12 @@ impl From<&Float> for f32 {
 impl Float {
   #[napi(constructor)]
   pub fn new_float(inner: f64) -> Float {
-    Float::from(inner)
+    Float::from(inner as f32)
+  }
+
+  #[napi]
+  #[allow(clippy::inherent_to_string)]
+  pub fn to_string(&self) -> String {
+    self.inner.to_string()
   }
 }

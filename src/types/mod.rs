@@ -1,4 +1,5 @@
 pub mod decimal;
+pub mod double;
 pub mod duration;
 pub mod float;
 pub mod list;

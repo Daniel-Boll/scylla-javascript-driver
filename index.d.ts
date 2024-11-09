@@ -38,6 +38,17 @@ export declare class Decimal {
   toString(): string
 }
 
+/**
+ * A double precision float number.
+ *
+ * Due to the nature of numbers in JavaScript, it's hard to distinguish between integers and floats, so this type is used to represent
+ * double precision float numbers while any other JS number will be treated as an integer. (This is not the case for BigInts, which are always treated as BigInts).
+ */
+export declare class Double {
+  constructor(inner: number)
+  toString(): string
+}
+
 export declare class Duration {
   months: number
   days: number
@@ -55,16 +66,19 @@ export declare class Duration {
  */
 export declare class Float {
   constructor(inner: number)
+  toString(): string
 }
 
 /** A list of any CqlType */
 export declare class List<T = NativeTypes> {
   constructor(values: T[])
+  toString(): string
 }
 
 /** A map of any CqlType to any CqlType */
 export declare class Map<T = NativeTypes, U = NativeTypes> {
   constructor(values: Array<Array<T | U>>)
+  toString(): string
 }
 
 export declare class Metrics {
@@ -242,6 +256,7 @@ export declare class ScyllaSession {
 /** A list of any CqlType */
 export declare class Set<T = NativeTypes> {
   constructor(values: T[])
+  toString(): string
 }
 
 export declare class Uuid {
@@ -272,6 +287,7 @@ export declare class Uuid {
  */
 export declare class Varint {
   constructor(inner: Array<number>)
+  toString(): string
 }
 
 export interface Auth {

@@ -2,8 +2,8 @@ use napi::bindgen_prelude::BigInt;
 use scylla::frame::response::result::CqlValue;
 
 use crate::types::{
-  decimal::Decimal, duration::Duration, float::Float, list::List, map::Map, set::Set, uuid::Uuid,
-  varint::Varint,
+  decimal::Decimal, double::Double, duration::Duration, float::Float, list::List, map::Map,
+  set::Set, uuid::Uuid, varint::Varint,
 };
 
 // Trait to abstract the conversion to CqlValue
@@ -57,6 +57,12 @@ impl ToCqlValue for bool {
 impl ToCqlValue for &Float {
   fn to_cql_value(&self) -> CqlValue {
     CqlValue::Float((*self).into())
+  }
+}
+
+impl ToCqlValue for &Double {
+  fn to_cql_value(&self) -> CqlValue {
+    CqlValue::Double((*self).into())
   }
 }
 

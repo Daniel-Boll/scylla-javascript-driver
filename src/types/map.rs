@@ -42,4 +42,10 @@ impl Map {
         .collect(),
     }
   }
+
+  #[napi]
+  #[allow(clippy::inherent_to_string)]
+  pub fn to_string(&self) -> String {
+    format!("{:?}", self.inner)
+  }
 }

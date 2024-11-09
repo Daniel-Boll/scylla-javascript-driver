@@ -45,4 +45,10 @@ impl Varint {
   pub fn new_varint(inner: Vec<u8>) -> Varint {
     Varint::from(inner)
   }
+
+  #[napi]
+  #[allow(clippy::inherent_to_string)]
+  pub fn to_string(&self) -> String {
+    format!("{:?}", self.inner)
+  }
 }
