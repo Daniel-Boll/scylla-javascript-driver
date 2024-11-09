@@ -15,7 +15,7 @@ permissions:
     tags-ignore:
       - "**"
     paths-ignore:
-      - "**/*.md"
+      # - "**/*.md"
       - LICENSE
       - "**/*.gitignore"
       - .editorconfig
