@@ -43,6 +43,8 @@ jobs:
           fi
   build:
     if: needs.check-version-in-commit.outputs.should_publish == 'true'
+    needs:
+      - check-version-in-commit
     strategy:
       fail-fast: false
       matrix:
@@ -159,6 +161,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Build FreeBSD
     if: needs.check-version-in-commit.outputs.should_publish == 'true'
+    needs:
+      - check-version-in-commit
     steps:
       - uses: actions/checkout@v4
       - name: Build
