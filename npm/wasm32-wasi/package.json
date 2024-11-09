@@ -4,15 +4,15 @@
   "cpu": [
     "wasm32"
   ],
-  "main": "package-template.wasi.cjs",
+  "main": "scylladb.wasi.cjs",
   "files": [
-    "package-template.wasm32-wasi.wasm",
-    "package-template.wasi.cjs",
-    "package-template.wasi-browser.js",
+    "scylladb.wasm32-wasi.wasm",
+    "scylladb.wasi.cjs",
+    "scylladb.wasi-browser.js",
     "wasi-worker.mjs",
     "wasi-worker-browser.mjs"
   ],
-  "description": "Template project for writing node package with napi-rs",
+  "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
   "keywords": [
     "napi-rs",
     "NAPI",
@@ -21,6 +21,11 @@
     "node-addon",
     "node-addon-api"
   ],
+  "author": {
+    "name": "Daniel Boll",
+    "email": "danielboll.dev@proton.me",
+    "url": "https://daniel-boll.me"
+  },
   "license": "MIT",
   "engines": {
     "node": ">=14.0.0"
@@ -30,10 +35,10 @@
     "access": "public"
   },
   "repository": {
-    "url": "git+ssh://git@github.com/napi-rs/package-template-pnpm.git",
+    "url": "git+https://github.com/Daniel-Boll/scylla-javascript-driver.git",
     "type": "git"
   },
-  "browser": "package-template.wasi-browser.js",
+  "browser": "scylladb.wasi-browser.js",
   "dependencies": {
     "@napi-rs/wasm-runtime": "^0.2.5"
   }

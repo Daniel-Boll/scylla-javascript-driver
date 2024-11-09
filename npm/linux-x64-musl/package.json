@@ -4,11 +4,11 @@
   "cpu": [
     "x64"
   ],
-  "main": "package-template.linux-x64-musl.node",
+  "main": "scylladb.linux-x64-musl.node",
   "files": [
-    "package-template.linux-x64-musl.node"
+    "scylladb.linux-x64-musl.node"
   ],
-  "description": "Template project for writing node package with napi-rs",
+  "description": "🚀 JavaScript driver for ScyllaDB, harnessing Rust's power through napi-rs for top performance. Pre-release stage. 🧪🔧",
   "keywords": [
     "napi-rs",
     "NAPI",
@@ -17,6 +17,11 @@
     "node-addon",
     "node-addon-api"
   ],
+  "author": {
+    "name": "Daniel Boll",
+    "email": "danielboll.dev@proton.me",
+    "url": "https://daniel-boll.me"
+  },
   "license": "MIT",
   "engines": {
     "node": ">= 10"
@@ -26,7 +31,7 @@
     "access": "public"
   },
   "repository": {
-    "url": "git+ssh://git@github.com/napi-rs/package-template-pnpm.git",
+    "url": "git+https://github.com/Daniel-Boll/scylla-javascript-driver.git",
     "type": "git"
   },
   "os": [
