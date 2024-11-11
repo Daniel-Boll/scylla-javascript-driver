@@ -1,6 +1,6 @@
 {
   "name": "@lambda-group/scylladb-android-arm-eabi",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "cpu": [
     "arm"
   ],

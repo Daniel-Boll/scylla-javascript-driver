@@ -1,6 +1,6 @@
 {
   "name": "@lambda-group/scylladb-linux-arm-gnueabihf",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "cpu": [
     "arm"
   ],

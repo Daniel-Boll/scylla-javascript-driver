@@ -1,6 +1,6 @@
 {
   "name": "@lambda-group/scylladb-linux-arm64-musl",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "cpu": [
     "arm64"
   ],
